@@ -1,0 +1,23 @@
+{
+  "name": "xapp-electron",
+  "version": "0.0.1",
+  "description": "XApp using the electron framework",
+  "main": "main.js",
+  "dependencies": {
+    "electron": "^4.0.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KSG-IT/XApp-Electron.git"
+  },
+  "author": "Christian De Frène",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KSG-IT/XApp-Electron/issues"
+  },
+  "homepage": "https://github.com/KSG-IT/XApp-Electron#readme"
+}
