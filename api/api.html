@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hello there</title>
+    <script type="text/javascript" src="api.js"></script>
+</head>
+<body style="background-color: black">
+<div>
+    <button onclick="obtainAuthenticationToken()">Obtain token</button>
+</div>
+<br>
+<div>
+    <button onclick="verifyAuthenticationToken()">Verify token</button>
+</div>
+<br>
+<div>
+    <button onclick="refreshAuthenticationToken()">Refresh token</button>
+</div>
+<br>
+<div>
+    <button onclick="invalidateToken()">Invalidate token</button>
+</div>
+<br>
+<p id="output" style="color: white; word-break: break-all"></p>
+</body>
+</html>
