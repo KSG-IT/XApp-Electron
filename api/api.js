@@ -37,16 +37,18 @@ function deleteAuthenticationCookie() {
 function obtainAuthenticationToken() {
 
     request
-        .post('/authentication/obtain-token')
-        .form({
-            'username': 'admin',
-            'password': '123456',
-        })
-        .on('response', (response) => {
-            response.on('data', (data) => {
-                let parsed_data = JSON.parse(data);
+        .post({
+            url: '/authentication/obtain-token', form: {username: 'gjengis', password: '123456',}
+        }, (error, response, body) => {
 
-                writeAuthenticationCookie(parsed_data.token, (error) => {
+            if (error) {
+                document.getElementById('output').innerHTML =
+                    "Connection error. Please check your internet connection";
+
+            } else if (response.statusCode === 200) {
+                const token = JSON.parse(body).token;
+
+                writeAuthenticationCookie(token, (error) => {
                     if (error) {
                         console.error(error);
                         document.getElementById('output').innerHTML = error.message;
@@ -58,12 +60,20 @@ function obtainAuthenticationToken() {
                                 document.getElementById('output').innerHTML = error.message;
                             } else {
                                 document.getElementById('output').innerHTML =
-                                    "Token obtained successfully!" + "<br><br>" + "Your token is: " + '<br>' + token;
+                                    "Token obtained successfully!"
+                                    + "<br><br>"
+                                    + "Your token is: "
+                                    + '<br>'
+                                    + token;
                             }
-                        });
+                        })
                     }
                 })
-            })
+
+            } else {
+                document.getElementById('output').innerHTML =
+                    "You need to be a funksjonær in order to log in";
+            }
         })
 }
 
@@ -75,13 +85,15 @@ function verifyAuthenticationToken() {
             document.getElementById('output').innerHTML = error.message;
         }
         request
-            .post('/authentication/verify-token')
-            .form({
-                'token': token,
-            })
-            .on('response', (response) => {
-                if (response.statusCode === 200) {
+            .post({url: '/authentication/verify-token', form: {token: token}}, (error, response) => {
+
+                if (error) {
+                    document.getElementById('output').innerHTML =
+                        "Connection error. Please check your internet connection";
+
+                } else if (response.statusCode === 200) {
                     document.getElementById('output').innerHTML = "Token is still valid!";
+
                 } else {
                     document.getElementById('output').innerHTML = "Token has expired!";
                 }
@@ -97,15 +109,16 @@ function refreshAuthenticationToken(token) {
             document.getElementById('output').innerHTML = error.message;
         }
         request
-            .post('/authentication/refresh-token')
-            .form({
-                'token': token,
-            })
-            .on('response', (response) => {
-                response.on('data', (data) => {
-                    let parsed_data = JSON.parse(data);
+            .post({url: '/authentication/refresh-token', form: {token: token}}, (error, response, body) => {
 
-                    writeAuthenticationCookie(parsed_data.token, (error) => {
+                if (error) {
+                    document.getElementById('output').innerHTML =
+                        "Connection error. Please check your internet connection";
+
+                } else if (response.statusCode === 200) {
+                    let token = JSON.parse(body).token;
+
+                    writeAuthenticationCookie(token, (error) => {
                         if (error) {
                             console.error(error);
                             document.getElementById('output').innerHTML = error.message;
@@ -118,14 +131,18 @@ function refreshAuthenticationToken(token) {
                                 } else {
                                     document.getElementById('output').innerHTML =
                                         "Token refreshed successfully!"
-                                        + "<br>" + "Your new token is: "
-                                        + "<br>" + token;
+                                        + "<br><br>"
+                                        + "Your new token is: "
+                                        + "<br>"
+                                        + token;
                                 }
-                            });
+                            })
                         }
                     })
 
-                })
+                } else {
+                    document.getElementById('output').innerHTML = "Token has expired!";
+                }
             })
     })
 }
