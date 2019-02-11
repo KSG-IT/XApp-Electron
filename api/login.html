@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <script src="api.js"></script>
+</head>
+<body style="color: white">
+Please enter your password to authenticate this Soci session.
+<br><br>
+<form id="loginForm" method="post" onsubmit="return obtainAuthenticationToken(this)">
+    <label>Password:</label>
+    <input type="password" name="password">
+    <p id="loginOutput"></p>
+    <br>
+    <input type="submit" value="Authenticate">
+</form>
+<script type="text/javascript">
+    readAuthenticationCookie((error, token) => {
+        if (token) document.location = 'api.html';
+    })
+</script>
+</body>
+</html>

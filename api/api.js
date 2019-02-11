@@ -1,7 +1,9 @@
-const baseUrl = 'http://localhost:8000/api/';
+const baseUrl = 'https://ksg.tormodhaugland.com/api/';
 const request = require('request').defaults({baseUrl: baseUrl});
-const cookies = require('electron').remote.session.defaultSession.cookies;
+const remote = require('electron').remote;
 
+const currentWindow = remote.getCurrentWindow();
+const cookies = remote.session.defaultSession.cookies;
 
 function writeAuthenticationCookie(token, callback) {
 
@@ -11,7 +13,6 @@ function writeAuthenticationCookie(token, callback) {
         });
 }
 
-
 function readAuthenticationCookie(callback) {
 
     cookies
@@ -20,11 +21,13 @@ function readAuthenticationCookie(callback) {
                 let token = cookies[0].value;
                 callback(error, token);
             } else {
-                document.getElementById('output').innerHTML = "No valid token could be found!";
+                let output = document.getElementById('output');
+                if (output !== null) {
+                    output.innerText = "No valid token could be found!";
+                }
             }
         });
 }
-
 
 function deleteAuthenticationCookie() {
 
@@ -33,48 +36,47 @@ function deleteAuthenticationCookie() {
         });
 }
 
+function obtainAuthenticationToken(loginForm) {
 
-function obtainAuthenticationToken() {
+    const password = loginForm.password.value;
 
-    request
-        .post({
-            url: '/authentication/obtain-token', form: {username: 'gjengis', password: '123456',}
-        }, (error, response, body) => {
+    if (password.length === 0) {
+        document.getElementById('loginOutput').innerText = "You need to supply a password";
 
-            if (error) {
-                document.getElementById('output').innerHTML =
-                    "Connection error. Please check your internet connection";
+    } else {
+        request
+            .post({
+                url: '/authentication/obtain-token', form: {username: 'funk', password: password}
+            }, (error, response, body) => {
 
-            } else if (response.statusCode === 200) {
-                const token = JSON.parse(body).token;
+                if (error) {
+                    document.getElementById('loginOutput').innerText =
+                        "Connection error. Please check your internet connection";
 
-                writeAuthenticationCookie(token, (error) => {
-                    if (error) {
-                        console.error(error);
-                        document.getElementById('output').innerHTML = error.message;
-                    } else {
+                } else if (response.statusCode === 200) {
+                    const token = JSON.parse(body).token;
 
-                        readAuthenticationCookie((error, token) => {
-                            if (error) {
-                                console.error(error);
-                                document.getElementById('output').innerHTML = error.message;
-                            } else {
-                                document.getElementById('output').innerHTML =
-                                    "Token obtained successfully!"
-                                    + "<br><br>"
-                                    + "Your token is: "
-                                    + '<br>'
-                                    + token;
-                            }
-                        })
-                    }
-                })
+                    writeAuthenticationCookie(token, (error) => {
+                        if (error) {
+                            console.error(error);
+                            document.getElementById('loginOutput').innerText = error.message;
+                        } else {
+                            document.getElementById('loginOutput').innerText =
+                                "Login successful! Redirecting...";
+                            window.setTimeout(() => {
+                                currentWindow.loadFile('./api/api.html');
+                            }, 1000);
+                        }
+                    })
 
-            } else {
-                document.getElementById('output').innerHTML =
-                    "You need to be a funksjonær in order to log in";
-            }
-        })
+                } else {
+                    document.getElementById('loginOutput').innerText =
+                        "You need to be a funksjonær in order to log in";
+                }
+            });
+    }
+
+    return false;
 }
 
 function verifyAuthenticationToken() {
@@ -82,20 +84,20 @@ function verifyAuthenticationToken() {
     readAuthenticationCookie((error, token) => {
         if (error) {
             console.error(error);
-            document.getElementById('output').innerHTML = error.message;
+            document.getElementById('output').innerText = error.message;
         }
         request
             .post({url: '/authentication/verify-token', form: {token: token}}, (error, response) => {
 
                 if (error) {
-                    document.getElementById('output').innerHTML =
+                    document.getElementById('output').innerText =
                         "Connection error. Please check your internet connection";
 
                 } else if (response.statusCode === 200) {
-                    document.getElementById('output').innerHTML = "Token is still valid!";
+                    document.getElementById('output').innerText = "Token is still valid!";
 
                 } else {
-                    document.getElementById('output').innerHTML = "Token has expired!";
+                    document.getElementById('output').innerText = "Token has expired!";
                 }
             })
     })
@@ -106,13 +108,13 @@ function refreshAuthenticationToken(token) {
     readAuthenticationCookie((error, token) => {
         if (error) {
             console.error(error);
-            document.getElementById('output').innerHTML = error.message;
+            document.getElementById('output').innerText = error.message;
         }
         request
             .post({url: '/authentication/refresh-token', form: {token: token}}, (error, response, body) => {
 
                 if (error) {
-                    document.getElementById('output').innerHTML =
+                    document.getElementById('output').innerText =
                         "Connection error. Please check your internet connection";
 
                 } else if (response.statusCode === 200) {
@@ -121,13 +123,13 @@ function refreshAuthenticationToken(token) {
                     writeAuthenticationCookie(token, (error) => {
                         if (error) {
                             console.error(error);
-                            document.getElementById('output').innerHTML = error.message;
+                            document.getElementById('output').innerText = error.message;
                         } else {
 
                             readAuthenticationCookie((error, token) => {
                                 if (error) {
                                     console.error(error);
-                                    document.getElementById('output').innerHTML = error.message;
+                                    document.getElementById('output').innerText = error.message;
                                 } else {
                                     document.getElementById('output').innerHTML =
                                         "Token refreshed successfully!"
@@ -141,7 +143,7 @@ function refreshAuthenticationToken(token) {
                     })
 
                 } else {
-                    document.getElementById('output').innerHTML = "Token has expired!";
+                    document.getElementById('output').innerText = "Token has expired!";
                 }
             })
     })
@@ -149,5 +151,5 @@ function refreshAuthenticationToken(token) {
 
 function invalidateToken() {
     deleteAuthenticationCookie();
-    document.getElementById('output').innerHTML = "Token was successfully deleted!";
+    document.getElementById('output').innerText = "Token was successfully deleted!";
 }
