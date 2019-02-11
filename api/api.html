@@ -5,11 +5,7 @@
     <title>Hello there</title>
     <script type="text/javascript" src="api.js"></script>
 </head>
-<body style="background-color: black">
-<div>
-    <button onclick="obtainAuthenticationToken()">Obtain token</button>
-</div>
-<br>
+<body>
 <div>
     <button onclick="verifyAuthenticationToken()">Verify token</button>
 </div>
@@ -23,5 +19,16 @@
 </div>
 <br>
 <p id="output" style="color: white; word-break: break-all"></p>
+<script type="text/javascript">
+    readAuthenticationCookie((error, token) => {
+        if (error) {
+            console.error(error);
+            document.getElementById('output').innerText = error.message;
+
+        } else {
+            document.getElementById('output').innerHTML = "Your token is: " + '<br><br>' + token;
+        }
+    })
+</script>
 </body>
 </html>

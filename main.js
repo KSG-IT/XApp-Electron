@@ -9,10 +9,11 @@ function createWindow() {
     win = new BrowserWindow({
         width: 900,
         height: 700,
+        backgroundColor: '#000000'
     });
 
     // and load the index.html of the app.
-    win.loadFile('api/api.html');
+    win.loadFile('api/login.html');
 
     // Open the DevTools.
     // win.webContents.openDevTools();
