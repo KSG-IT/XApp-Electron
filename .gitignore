@@ -89,3 +89,4 @@ typings/
 ### OS specific ignored files
 
 .DS_Store
+release-builds/

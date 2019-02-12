@@ -11,14 +11,19 @@ Please enter your password to authenticate this Soci session.
 <form id="loginForm" method="post" onsubmit="return obtainAuthenticationToken(this)">
     <label>Password:</label>
     <input type="password" name="password">
-    <p id="loginOutput"></p>
+    <br><br>
+    <input id="loginSubmit" type="submit" value="Authenticate" onclick="setTimeout(() => {resetOutput()}, 3000)">
     <br>
-    <input type="submit" value="Authenticate">
+    <p id="loginOutput" style="color: yellow"></p>
 </form>
 <script type="text/javascript">
     readAuthenticationCookie((error, token) => {
         if (token) document.location = 'api.html';
-    })
+    });
+
+    function resetOutput() {
+        document.getElementById('loginOutput').innerText = "";
+    }
 </script>
 </body>
 </html>

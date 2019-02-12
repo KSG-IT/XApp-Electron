@@ -7,28 +7,36 @@
 </head>
 <body>
 <div>
-    <button onclick="verifyAuthenticationToken()">Verify token</button>
+    <button id="showToken" onclick="showAuthenticationToken()">Show token</button>
 </div>
 <br>
 <div>
-    <button onclick="refreshAuthenticationToken()">Refresh token</button>
+    <button id="verifyToken" onclick="verifyAuthenticationToken()">Verify token</button>
 </div>
 <br>
 <div>
-    <button onclick="invalidateToken()">Invalidate token</button>
+    <button id="refreshToken" onclick="refreshAuthenticationToken()">Refresh token</button>
+</div>
+<br>
+<div>
+    <button id="invalidateToken" onclick="invalidateToken()">Invalidate token</button>
 </div>
 <br>
 <p id="output" style="color: white; word-break: break-all"></p>
 <script type="text/javascript">
-    readAuthenticationCookie((error, token) => {
-        if (error) {
-            console.error(error);
-            document.getElementById('output').innerText = error.message;
+    function showAuthenticationToken() {
+        readAuthenticationCookie((error, token) => {
+            if (error) {
+                console.error(error);
+                document.getElementById('output').innerText = error.message;
 
-        } else {
-            document.getElementById('output').innerHTML = "Your token is: " + '<br><br>' + token;
-        }
-    })
+            } else {
+                document.getElementById('output').innerHTML = "Your token is: " + '<br><br>' + token;
+            }
+        })
+    }
+
+    showAuthenticationToken();
 </script>
 </body>
 </html>

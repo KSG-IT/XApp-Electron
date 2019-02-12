@@ -63,6 +63,7 @@ function obtainAuthenticationToken(loginForm) {
                         } else {
                             document.getElementById('loginOutput').innerText =
                                 "Login successful! Redirecting...";
+                            document.getElementById('loginSubmit').disabled = true;
                             window.setTimeout(() => {
                                 currentWindow.loadFile('./api/api.html');
                             }, 1000);
@@ -75,7 +76,9 @@ function obtainAuthenticationToken(loginForm) {
                 }
             });
     }
-
+    setTimeout(() => {
+        document.getElementById("loginForm").reset();
+    }, 300);
     return false;
 }
 
@@ -151,5 +154,17 @@ function refreshAuthenticationToken(token) {
 
 function invalidateToken() {
     deleteAuthenticationCookie();
-    document.getElementById('output').innerText = "Token was successfully deleted!";
+    document.getElementById('output').innerHTML =
+        "Token was successfully deleted!"
+        + "<br><br>"
+        + "Redirecting back to login page...";
+
+    document.getElementById('showToken').disabled = true;
+    document.getElementById('verifyToken').disabled = true;
+    document.getElementById('refreshToken').disabled = true;
+    document.getElementById('invalidateToken').disabled = true;
+
+    window.setTimeout(() => {
+        currentWindow.loadFile('./api/login.html');
+    }, 3000);
 }
