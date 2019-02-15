@@ -38,47 +38,34 @@ function deleteAuthenticationCookie() {
 
 function obtainAuthenticationToken(loginForm) {
 
-    const password = loginForm.password.value;
+    request
+        .post({
+            url: '/authentication/obtain-token', form: {username: 'funk', password: loginForm.password.value}
+        }, (error, response, body) => {
 
-    if (password.length === 0) {
-        document.getElementById('loginOutput').innerText = "You need to supply a password";
+            if (error) {
+                document.getElementById('loginOutput').innerText =
+                    "Oisann, noe gikk galt! Vennligst sjekk om maskinen har internettilkobling.";
 
-    } else {
-        request
-            .post({
-                url: '/authentication/obtain-token', form: {username: 'funk', password: password}
-            }, (error, response, body) => {
+            } else if (response.statusCode === 200) {
+                const token = JSON.parse(body).token;
 
-                if (error) {
-                    document.getElementById('loginOutput').innerText =
-                        "Connection error. Please check your internet connection";
+                writeAuthenticationCookie(token, (error) => {
+                    if (error) {
+                        console.error(error);
+                        document.getElementById('loginOutput').innerText = error.message;
+                    } else {
+                        currentWindow.loadFile('./api/api.html');
+                    }
+                })
 
-                } else if (response.statusCode === 200) {
-                    const token = JSON.parse(body).token;
+            } else {
+                document.getElementById('loginOutput').innerText =
+                    "Sorry! Du må være funksjonær for å kunne åpne Soci.";
+            }
+            document.getElementById('loginSubmit').disabled = false;
+        });
 
-                    writeAuthenticationCookie(token, (error) => {
-                        if (error) {
-                            console.error(error);
-                            document.getElementById('loginOutput').innerText = error.message;
-                        } else {
-                            document.getElementById('loginOutput').innerText =
-                                "Login successful! Redirecting...";
-                            document.getElementById('loginSubmit').disabled = true;
-                            window.setTimeout(() => {
-                                currentWindow.loadFile('./api/api.html');
-                            }, 1000);
-                        }
-                    })
-
-                } else {
-                    document.getElementById('loginOutput').innerText =
-                        "You need to be a funksjonær in order to log in";
-                }
-            });
-    }
-    setTimeout(() => {
-        document.getElementById("loginForm").reset();
-    }, 300);
     return false;
 }
 
