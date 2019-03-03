@@ -1,9 +1,14 @@
+const fs = require('fs');
+const path = require('path');
+
 const baseUrl = 'https://ksg.tormodhaugland.com/api/';
 const request = require('request').defaults({baseUrl: baseUrl});
 const remote = require('electron').remote;
 
 const currentWindow = remote.getCurrentWindow();
 const cookies = remote.session.defaultSession.cookies;
+
+const handlebars = require('handlebars');
 
 function writeAuthenticationCookie(token, callback) {
 
@@ -152,6 +157,28 @@ function invalidateToken() {
     document.getElementById('invalidateToken').disabled = true;
 
     window.setTimeout(() => {
-        currentWindow.loadFile('./api/login.html');
+        currentWindow.loadFile('./api/index.html');
     }, 3000);
+}
+
+function getSociProducts() {
+    request
+        .get({
+            url: '/economy/products',
+            auth: {user: 'funk', pass: '123456'},
+            // headers: {Authorization: 'JWT TOKEN_HERE'}
+        }, (error, response, body) => {
+            if (error) {
+                console.log(error);
+            } else if (response.statusCode === 200) {
+                const products = JSON.parse(body);
+
+                products.forEach((product) => {
+                    fs.readFile(path.join(__dirname, '../assets/templates/productCardTemplate.hbs'), (error, data) => {
+                        const template = handlebars.compile(data.toString());
+                        document.getElementById('productList').innerHTML += template({product: product});
+                    })
+                })
+            }
+        });
 }

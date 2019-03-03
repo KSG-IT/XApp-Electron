@@ -1,0 +1,119 @@
+.button {
+    cursor: pointer;
+    background-color: #2b2b2b;
+    border: 1px solid white;
+    border-radius: 0.25rem;
+}
+
+.button:hover {
+    /*background-color: #2b2b2b*/
+    background-color: #2864d0
+}
+
+.button:active {
+    /*background-color: #2864d0;*/
+    /*background-color: #75c7f5;*/
+    background-color: #204fa5;
+}
+
+.emoji {
+    font-size: 80px;
+    display: inline;
+    margin-left: 10px;
+    margin-top: 10px;
+}
+
+.card-subtitle {
+    color: #85c8ff;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+
+.card-text {
+    max-width: 130px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+
+.badge {
+    position: relative;
+    top: -155px;
+    right: -41%;
+    background: red;
+    color: white;
+    visibility: hidden;
+}
+
+.totalScreen {
+    display: inline-block;
+    text-align: center;
+    margin-left: auto;
+    margin-right: 800px;
+    margin-top: 30px;
+}
+
+#kryssButton {
+    border-color: #4cd964;
+    /*border-color: rgb(76, 217, 100);*/
+    background-color: #4cd964;
+    /*background-color: rgb(76, 217, 100);*/
+}
+
+#kryssButton:hover {
+    /*border-color: #45b046;*/
+    border-color: #2ac845;
+    /*background-color: #45b046;*/
+    background-color: #2ac845;
+}
+
+#kryssButton:active {
+    /*border-color: #65c366;*/
+    border-color: #26b33e;
+    /*background-color: #65c366;*/
+    background-color: #26b33e;
+}
+
+#kryssButton:focus {
+    box-shadow: none;
+}
+
+#cancelButton {
+    /*border-color: #ec4d3d;*/
+    border-color: #ff3b30;
+    /*background-color: #ec4d3d;*/
+    background-color: #ff3b30;
+}
+
+#cancelButton:hover {
+    /*border-color: #D54537;*/
+    border-color: #fc0d00;
+    /*background-color: #D54537;*/
+    background-color: #fc0d00;
+}
+
+#cancelButton:active {
+    /*border-color: #BA4234;*/
+    border-color: #e20c00;
+    /*background-color: #BA4234;*/
+    background-color: #e20c00;
+}
+
+#cancelButton:focus {
+    box-shadow: none;
+}
+
+#submitButton:focus {
+    box-shadow: none;
+}
+
+#totalPrice {
+    display: inline;
+    color: white;
+    font-weight: bold;
+    font-size: 30px;
+}
+

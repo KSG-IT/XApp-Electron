@@ -8,14 +8,17 @@ let win;
 function createWindow() {
     // Create the browser window.
     win = new BrowserWindow({
-        width: 900,
-        height: 700,
+        width: 1150,
+        minWidth: 1150,
+        height: 750,
+        minHeight: 750,
         backgroundColor: '#1d1e1f',
         icon: path.join(__dirname, 'assets/icons/png/64x64.png'),
     });
 
     // and load the index.html of the app.
-    win.loadFile('api/login.html');
+    win.loadFile('x_view/productView.html');
+    // win.loadFile('index.html');
 
     // Open the DevTools.
     // win.webContents.openDevTools();
