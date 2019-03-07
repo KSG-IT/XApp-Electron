@@ -1,3 +1,5 @@
+[![CodeFactor](https://www.codefactor.io/repository/github/ksg-it/xapp-electron/badge)](https://www.codefactor.io/repository/github/ksg-it/xapp-electron)
+
 # XApp Electron
 
 This is a version of XApp built using the electron framework.
