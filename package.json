@@ -4,9 +4,9 @@
   "description": "XApp using the electron framework",
   "main": "main.js",
   "dependencies": {
-    "electron": "^4.0.1",
-    "handlebars": "^4.1.0",
-    "request": "^2.88.0"
+    "electron": "4.0.1",
+    "handlebars": "4.1.0",
+    "request": "2.88.0"
   },
   "devDependencies": {},
   "scripts": {
