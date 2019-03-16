@@ -1,10 +1,11 @@
 <div class="grid-item">
+    <p class="sku-number" hidden>{{product.sku_number}}</p>
     <div class="button row no-gutters" onmousedown="increaseCount(this, event)">
         <p class="emoji">{{product.icon}}</p>
         <div class="card" style="background-color: inherit; border: none;">
             <div class="card-body">
                 <h4 class="card-title">{{product.name}}</h4>
-                <p class="card-subtitle">{{product.price}}</p>
+                <p class="card-subtitle">{{product.price}} kr</p>
                 <p class="card-text">{{product.description}}</p>
             </div>
         </div>

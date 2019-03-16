@@ -48,12 +48,13 @@
     visibility: hidden;
 }
 
-.totalScreen {
+.sideBar {
     display: inline-block;
     text-align: center;
     margin-left: auto;
     margin-right: 800px;
     margin-top: 30px;
+    width: 220px;
 }
 
 #kryssButton {
@@ -115,5 +116,16 @@
     color: white;
     font-weight: bold;
     font-size: 30px;
+}
+
+#personName {
+    display: inline;
+    color: white;
+    font-weight: bold;
+    font-size: 30px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
 }
 

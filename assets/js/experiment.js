@@ -11,7 +11,7 @@ function increaseCount(gridItem, event) {
     if (!isNaN(originalCount)) {
         if (event.which === 1) { // Left click
             originalCount += 1;
-            currentTotal += productPrice
+            currentTotal += productPrice;
         } else {
             originalCount -= 1;
             currentTotal -= productPrice;
@@ -23,9 +23,29 @@ function increaseCount(gridItem, event) {
         originalCount = 1;
         currentTotal += productPrice;
         badge.style.visibility = "visible";
-
     }
 
     badge.innerText = originalCount;
     document.getElementById('totalPrice').innerText = currentTotal.toLocaleString() + " kr";
+    document.getElementById('cancelButton').disabled = currentTotal === 0;
+
+    if (originalCount >= 0) {
+        let skuNumber = gridItem.parentElement.getElementsByClassName('sku-number')[0].innerText;
+        if (originalCount === 0) {
+            sessionStorage.removeItem(skuNumber);
+        } else {
+            sessionStorage.setItem(skuNumber, originalCount.toString());
+        }
+    }
+}
+
+
+function cancelKryss(button) {
+    button.disabled = true;
+    [].forEach.call(document.getElementsByClassName('badge'), (badge) => {
+        badge.innerText = "0";
+        badge.style.visibility = "hidden";
+    });
+    document.getElementById('totalPrice').innerText = "0 kr";
+    sessionStorage.clear();
 }

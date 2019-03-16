@@ -15,23 +15,26 @@
     <script type="text/javascript" src="../assets/js/api.js"></script>
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="../assets/bootstrap-4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.css">
 </head>
 <body style="background-color: #1d1e1f; overflow: hidden; width: 100%; height: 100%">
 <!--<body>-->
 <div class="row no-gutters">
 
-    <div class="totalScreen">
-        <h1 style="color: white; ">Total</h1>
+    <div class="sideBar">
+        <p id="personName">Les kort...</p>
+        <br>
         <hr width="200px" style="border: 1px solid white;">
         <br>
+        <h1 style="color: white; ">Totalsum</h1>
         <p id="totalPrice">0 kr</p>
         <br><br>
         <button class="btn btn-lg btn-primary btn-block" id="kryssButton" type="submit" disabled>
             Kryss
         </button>
         <br><br>
-        <button class="btn btn-lg btn-primary btn-block" id="cancelButton" type="submit" disabled>
+        <button class="btn btn-lg btn-primary btn-block" id="cancelButton" type="submit" disabled
+                onclick="cancelKryss(this)">
             Avbryt
         </button>
         <br><br>
