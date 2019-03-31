@@ -25,8 +25,9 @@ function increaseCount(gridItem, event) {
         badge.style.visibility = "visible";
     }
 
-    badge.innerText = originalCount;
+    badge.innerText = originalCount.toString();
     document.getElementById('totalPrice').innerText = currentTotal.toLocaleString() + " kr";
+    document.getElementById('kryssButton').disabled = currentTotal === 0;
     document.getElementById('cancelButton').disabled = currentTotal === 0;
 
     if (originalCount >= 0) {
@@ -39,13 +40,53 @@ function increaseCount(gridItem, event) {
     }
 }
 
+function confirmKryss(button) {
+    button.disabled = true;
+    document.getElementById('cancelButton').disabled = true;
+    clearScreen();
+}
+
 
 function cancelKryss(button) {
+    document.getElementById('kryssButton').disabled = true;
     button.disabled = true;
+    clearScreen();
+}
+
+function completeLogin() {
+    let overlay = document.getElementById('productListOverlay');
+    overlay.style.opacity = "1";
+    overlay.style.pointerEvents = 'all';
+
+    let personName = document.getElementById('personName');
+    personName.innerText = "Alexander LongWordThatNeedsToBeBrokenUp Orvik";
+
+}
+
+// TODO: Replace this with the card reader
+require('electron').ipcRenderer.on('login', (event, message) => {
+    completeLogin();
+});
+
+require('electron').ipcRenderer.on('cancel', (event, message) => {
+    document.getElementById('kryssButton').disabled = true;
+    document.getElementById('cancelButton').disabled = true;
+    clearScreen();
+});
+
+
+function clearScreen() {
     [].forEach.call(document.getElementsByClassName('badge'), (badge) => {
         badge.innerText = "0";
         badge.style.visibility = "hidden";
     });
     document.getElementById('totalPrice').innerText = "0 kr";
     sessionStorage.clear();
+
+    let personName = document.getElementById('personName');
+    personName.innerText = "Les kort...";
+
+    let overlay = document.getElementById('productListOverlay');
+    overlay.style.opacity = ".33";
+    overlay.style.pointerEvents = 'none';
 }

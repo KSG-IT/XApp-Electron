@@ -1,4 +1,4 @@
-const {app, BrowserWindow} = require('electron');
+const {app, BrowserWindow, globalShortcut, dialog} = require('electron');
 let path = require('path');
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -36,7 +36,28 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', () => {
+    createWindow();
+
+    // Makeshift login
+    globalShortcut.register('CmdOrCtrl+S', () => {
+        win.webContents.send('login');
+    });
+
+    globalShortcut.register('Escape', () => {
+        win.webContents.send('cancel');
+    });
+
+    // Pseudo Konami code 😛 - Get the real one working somehow
+    globalShortcut.register('CmdOrCtrl+Up', () => {
+        dialog.showMessageBox({
+            type: 'info',
+            detail: 'HADOUKEN!',
+            message: '🇪🇺🧿',
+            icon: path.join(__dirname, 'assets/images/hadouken.png')
+        })
+    });
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {

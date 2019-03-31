@@ -1,30 +1,26 @@
 .button {
     cursor: pointer;
-    background-color: #2b2b2b;
+    background-color: rgb(43, 43, 43);
     border: 1px solid white;
     border-radius: 0.25rem;
 }
 
 .button:hover {
-    /*background-color: #2b2b2b*/
-    background-color: #2864d0
+    background-color: rgb(40, 100, 208);
 }
 
 .button:active {
-    /*background-color: #2864d0;*/
-    /*background-color: #75c7f5;*/
-    background-color: #204fa5;
+    background-color: rgb(32, 79, 165);
 }
 
 .emoji {
     font-size: 80px;
-    display: inline;
     margin-left: 10px;
     margin-top: 10px;
 }
 
 .card-subtitle {
-    color: #85c8ff;
+    color: rgb(133, 200, 255);
     font-weight: bold;
     font-size: 18px;
 }
@@ -55,27 +51,22 @@
     margin-right: 800px;
     margin-top: 30px;
     width: 220px;
+    user-select: none;
 }
 
 #kryssButton {
-    border-color: #4cd964;
-    /*border-color: rgb(76, 217, 100);*/
-    background-color: #4cd964;
-    /*background-color: rgb(76, 217, 100);*/
+    border-color: rgb(76, 217, 100);
+    background-color: rgb(76, 217, 100);
 }
 
 #kryssButton:hover {
-    /*border-color: #45b046;*/
-    border-color: #2ac845;
-    /*background-color: #45b046;*/
-    background-color: #2ac845;
+    border-color: rgb(42, 200, 69);
+    background-color: rgb(42, 200, 69);
 }
 
 #kryssButton:active {
-    /*border-color: #65c366;*/
-    border-color: #26b33e;
-    /*background-color: #65c366;*/
-    background-color: #26b33e;
+    border-color: rgb(38, 179, 62);
+    background-color: rgb(38, 179, 62);
 }
 
 #kryssButton:focus {
@@ -83,31 +74,21 @@
 }
 
 #cancelButton {
-    /*border-color: #ec4d3d;*/
-    border-color: #ff3b30;
-    /*background-color: #ec4d3d;*/
-    background-color: #ff3b30;
+    border-color: rgb(255, 59, 48);
+    background-color: rgb(255, 59, 48);
 }
 
 #cancelButton:hover {
-    /*border-color: #D54537;*/
-    border-color: #fc0d00;
-    /*background-color: #D54537;*/
-    background-color: #fc0d00;
+    border-color: rgb(252, 13, 0);
+    background-color: rgb(252, 13, 0);
 }
 
 #cancelButton:active {
-    /*border-color: #BA4234;*/
-    border-color: #e20c00;
-    /*background-color: #BA4234;*/
-    background-color: #e20c00;
+    border-color: rgb(226, 12, 0);
+    background-color: rgb(226, 12, 0);
 }
 
 #cancelButton:focus {
-    box-shadow: none;
-}
-
-#submitButton:focus {
     box-shadow: none;
 }
 
@@ -119,7 +100,6 @@
 }
 
 #personName {
-    display: inline;
     color: white;
     font-weight: bold;
     font-size: 30px;
@@ -127,5 +107,12 @@
     display: -webkit-box;
     -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
+    height: 175px;
+    width: auto;
+    word-break: break-word;
 }
 
+#productListOverlay {
+    opacity: .33;
+    pointer-events: none;
+}

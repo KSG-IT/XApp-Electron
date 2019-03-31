@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="../assets/css/grid.css">
 
     <!--Experiment-->
-    <link rel="stylesheet" href="../assets/css/experiment.css">
-    <script type="text/javascript" src="../assets/js/experiment.js"></script>
+    <link rel="stylesheet" href="../assets/css/x-view.css">
+    <script type="text/javascript" src="../assets/js/kryssLogic.js"></script>
 
     <!--API-->
     <script type="text/javascript" src="../assets/js/api.js"></script>
@@ -24,12 +24,13 @@
     <div class="sideBar">
         <p id="personName">Les kort...</p>
         <br>
-        <hr width="200px" style="border: 1px solid white;">
+        <hr style="border: 1px solid white;">
         <br>
         <h1 style="color: white; ">Totalsum</h1>
         <p id="totalPrice">0 kr</p>
         <br><br>
-        <button class="btn btn-lg btn-primary btn-block" id="kryssButton" type="submit" disabled>
+        <button class="btn btn-lg btn-primary btn-block" id="kryssButton" type="submit" disabled
+                onclick="confirmKryss(this)">
             Kryss
         </button>
         <br><br>
@@ -37,14 +38,12 @@
                 onclick="cancelKryss(this)">
             Avbryt
         </button>
-        <br><br>
-        <button class="btn btn-lg btn-primary btn-block" id="submitButton" type="submit" disabled>
-            Extra
-        </button>
     </div>
 
     <div style="margin-right: auto; margin-left: auto; justify-content: right">
-        <div class="grid-container" id="productList"></div>
+        <div id="productListOverlay">
+            <div class="grid-container" id="productList"></div>
+        </div>
     </div>
 
 </div>
