@@ -61,6 +61,8 @@ function completeLogin() {
     let personName = document.getElementById('personName');
     personName.innerText = "Alexander LongWordThatNeedsToBeBrokenUp Orvik";
 
+    require('electron').remote.Menu.getApplicationMenu().getMenuItemById('scan').enabled = false;
+    require('electron').remote.Menu.getApplicationMenu().getMenuItemById('cancel').enabled = true;
 }
 
 // TODO: Replace this with the card reader
@@ -89,4 +91,7 @@ function clearScreen() {
     let overlay = document.getElementById('productListOverlay');
     overlay.style.opacity = ".33";
     overlay.style.pointerEvents = 'none';
+
+    require('electron').remote.Menu.getApplicationMenu().getMenuItemById('scan').enabled = true;
+    require('electron').remote.Menu.getApplicationMenu().getMenuItemById('cancel').enabled = false;
 }
