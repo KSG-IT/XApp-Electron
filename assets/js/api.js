@@ -2,6 +2,9 @@ const fs = require('fs');
 const path = require('path');
 
 const baseUrl = 'https://ksg.tormodhaugland.com/api/';
+const auth = {user: 'funk', pass: '123456'};
+// const baseUrl = 'http://localhost:8000/api/';
+// const auth = {user: 'admin', pass: '123456'};
 const request = require('request').defaults({baseUrl: baseUrl});
 const remote = require('electron').remote;
 
@@ -165,7 +168,7 @@ function getSociProducts() {
     request
         .get({
             url: '/economy/products',
-            auth: {user: 'funk', pass: '123456'},
+            auth: auth,
             // headers: {Authorization: 'JWT TOKEN_HERE'}
         }, (error, response, body) => {
             if (error) {
@@ -179,6 +182,29 @@ function getSociProducts() {
                         document.getElementById('productList').innerHTML += template({product: product});
                     })
                 })
+            }
+        });
+}
+
+function getBalance() {
+    request
+        .get({
+            url: '/economy/bank-accounts/balance',
+            auth: auth,
+            qs: {card_uuid: sessionStorage.getItem('cardNumber')}
+        }, (error, response, body) => {
+            if (error) {
+                console.log(error);
+            }
+            else if (response.statusCode === 402) {
+                showMessage("Du er svart.\nFyll på kontoen eller kjøp bong.");
+            }
+            else if (response.statusCode === 404) {
+                showMessage("Fant ikke kortnummeret. Har du lagt inn riktig?");
+            }
+            else if (response.statusCode === 200) {
+                sessionStorage.setItem('bankAccount', body.toString());
+                completeLogin();
             }
         });
 }

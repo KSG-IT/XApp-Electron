@@ -1,3 +1,19 @@
+let textResetFunction;
+let applicationMenu = require('electron').remote.Menu.getApplicationMenu();
+
+// TODO: Replace this with the card reader
+require('electron').ipcRenderer.on('login', (event, message) => {
+    sessionStorage.setItem('cardNumber', "1234567890");
+    getBalance();
+});
+
+require('electron').ipcRenderer.on('cancel', (event, message) => {
+    document.getElementById('kryssButton').disabled = true;
+    document.getElementById('cancelButton').disabled = true;
+    showMessage("Kryssing kansellert!");
+    sessionStorage.removeItem('cardNumber');
+});
+
 function increaseCount(gridItem, event) {
 
     let badge = gridItem.parentElement.getElementsByTagName('span')[0];
@@ -43,39 +59,37 @@ function increaseCount(gridItem, event) {
 function confirmKryss(button) {
     button.disabled = true;
     document.getElementById('cancelButton').disabled = true;
-    clearScreen();
+    showMessage("Kryssing utført!");
+    sessionStorage.removeItem('cardNumber');
 }
-
 
 function cancelKryss(button) {
     document.getElementById('kryssButton').disabled = true;
     button.disabled = true;
-    clearScreen();
+    showMessage("Kryssing kansellert!");
+    sessionStorage.removeItem('cardNumber');
 }
 
 function completeLogin() {
-    let overlay = document.getElementById('productListOverlay');
-    overlay.style.opacity = "1";
-    overlay.style.pointerEvents = 'all';
+    const bankAccount = JSON.parse(sessionStorage.getItem('bankAccount'));
+    const balance = bankAccount['balance'];
 
-    let personName = document.getElementById('personName');
-    personName.innerText = "Alexander LongWordThatNeedsToBeBrokenUp Orvik";
+    if (balance < 15) {
+        showMessage("Du er ikke svart, men har heller ikke råd til noe")
+    } else {
+        let overlay = document.getElementById('productListOverlay');
+        overlay.style.opacity = "1";
+        overlay.style.pointerEvents = 'all';
 
-    require('electron').remote.Menu.getApplicationMenu().getMenuItemById('scan').enabled = false;
-    require('electron').remote.Menu.getApplicationMenu().getMenuItemById('cancel').enabled = true;
+        let personName = document.getElementById('personName');
+        personName.style.color = balance < 200 ? 'yellow' : 'white';
+        personName.innerText = bankAccount['user'];
+        clearTimeout(textResetFunction);
+
+        applicationMenu.getMenuItemById('scan').enabled = false;
+        applicationMenu.getMenuItemById('cancel').enabled = true;
+    }
 }
-
-// TODO: Replace this with the card reader
-require('electron').ipcRenderer.on('login', (event, message) => {
-    completeLogin();
-});
-
-require('electron').ipcRenderer.on('cancel', (event, message) => {
-    document.getElementById('kryssButton').disabled = true;
-    document.getElementById('cancelButton').disabled = true;
-    clearScreen();
-});
-
 
 function clearScreen() {
     [].forEach.call(document.getElementsByClassName('badge'), (badge) => {
@@ -85,13 +99,21 @@ function clearScreen() {
     document.getElementById('totalPrice').innerText = "0 kr";
     sessionStorage.clear();
 
-    let personName = document.getElementById('personName');
-    personName.innerText = "Les kort...";
-
     let overlay = document.getElementById('productListOverlay');
     overlay.style.opacity = ".33";
     overlay.style.pointerEvents = 'none';
 
-    require('electron').remote.Menu.getApplicationMenu().getMenuItemById('scan').enabled = true;
-    require('electron').remote.Menu.getApplicationMenu().getMenuItemById('cancel').enabled = false;
+    applicationMenu.getMenuItemById('scan').enabled = true;
+    applicationMenu.getMenuItemById('cancel').enabled = false;
+}
+
+function showMessage(msg, timeout = 3000, color = 'cyan') {
+    let textField = document.getElementById('personName');
+    textResetFunction = setTimeout(() => {
+        textField.style.color = 'white';
+        textField.innerText = "Les kort...";
+    }, timeout);
+    textField.style.color = color;
+    textField.innerText = msg;
+    clearScreen();
 }
