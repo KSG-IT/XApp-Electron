@@ -5,7 +5,7 @@
   "main": "main.js",
   "dependencies": {
     "bootstrap": "4.3.1",
-    "electron": "4.1.4",
+    "electron": "5.0.0",
     "handlebars": "4.1.2",
     "request": "2.88.0"
   },
