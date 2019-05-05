@@ -26,17 +26,17 @@
         <br>
         <hr style="border: 1px solid white;">
         <br>
-        <h1 style="color: white; ">Totalsum</h1>
+        <h1 id="totalPriceTitle" style="color: white; ">Totalsum</h1>
         <p id="totalPrice">0 kr</p>
         <br><br>
         <button class="btn btn-lg btn-primary btn-block" id="kryssButton" type="submit" disabled
-                onclick="confirmKryss(this)">
-            Kryss
+                onclick="chargeBankAccount()">
+            Kryss (⏎ )
         </button>
         <br><br>
         <button class="btn btn-lg btn-primary btn-block" id="cancelButton" type="submit" disabled
-                onclick="cancelKryss(this)">
-            Avbryt
+                onclick="cancelKryss()">
+            Avbryt (esc)
         </button>
     </div>
 

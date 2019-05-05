@@ -86,6 +86,7 @@ function buildMenuFromTemplate() {
                         win.webContents.send('login');
                     }
                 },
+                {type: 'separator'},
                 {
                     id: 'cancel',
                     label: 'Cancel kryss',
@@ -94,7 +95,17 @@ function buildMenuFromTemplate() {
                     click: () => {
                         win.webContents.send('cancel');
                     }
-                }
+                },
+                {type: 'separator'},
+                {
+                    id: 'kryss',
+                    label: 'Confirm kryss',
+                    accelerator: 'Enter',
+                    enabled: false,
+                    click: () => {
+                        win.webContents.send('kryss');
+                    }
+                },
             ]
         },
         {

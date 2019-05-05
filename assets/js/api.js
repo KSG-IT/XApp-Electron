@@ -165,6 +165,8 @@ function invalidateToken() {
 }
 
 function getSociProducts() {
+    localStorage.clear();
+
     request
         .get({
             url: '/economy/products',
@@ -176,11 +178,20 @@ function getSociProducts() {
             } else if (response.statusCode === 200) {
                 const products = JSON.parse(body);
 
-                products.forEach((product) => {
-                    fs.readFile(path.join(__dirname, '../assets/templates/productCardTemplate.hbs'), (error, data) => {
+                fs.readFile(path.join(__dirname, '../assets/templates/productCardTemplate.hbs'), (error, data) => {
+                    if (error) {
+                        console.log(error);
+                    } else {
                         const template = handlebars.compile(data.toString());
-                        document.getElementById('productList').innerHTML += template({product: product});
-                    })
+                        let lowestPrice = Infinity;
+                        products.forEach((product) => {
+                            if (product.price < lowestPrice) {
+                                lowestPrice = product.price
+                            }
+                            document.getElementById('productList').innerHTML += template({product: product});
+                        });
+                        localStorage.setItem('lowestPrice', lowestPrice.toString());
+                    }
                 })
             }
         });
@@ -191,20 +202,45 @@ function getBalance() {
         .get({
             url: '/economy/bank-accounts/balance',
             auth: auth,
+            // headers: {Authorization: 'JWT TOKEN_HERE'}
             qs: {card_uuid: sessionStorage.getItem('cardNumber')}
         }, (error, response, body) => {
             if (error) {
                 console.log(error);
-            }
-            else if (response.statusCode === 402) {
-                showMessage("Du er svart.\nFyll på kontoen eller kjøp bong.");
-            }
-            else if (response.statusCode === 404) {
+            } else if (response.statusCode === 404) {
                 showMessage("Fant ikke kortnummeret. Har du lagt inn riktig?");
-            }
-            else if (response.statusCode === 200) {
+            } else if (response.statusCode === 200) {
                 sessionStorage.setItem('bankAccount', body.toString());
                 completeLogin();
+            }
+        });
+}
+
+function chargeBankAccount() {
+    const bankAccount = JSON.parse(sessionStorage.getItem('bankAccount'));
+    const request_data = JSON.parse(sessionStorage.getItem('productOrders'));
+
+    request
+        .post({
+            url: '/economy/bank-accounts/' + bankAccount['id'] + '/charge',
+            auth: auth,
+            // headers: {Authorization: 'JWT TOKEN_HERE'}
+            body: request_data,
+            json: true
+        }, (error, response, body) => {
+
+            if (error) {
+                console.log(error);
+            } else if (response.statusCode === 400) {
+                // This shouldn't happen since we control the request
+                console.log(error);
+            } else if (response.statusCode === 402) {
+                showMessage("Kryssingen ble avbrutt: Du har ikke råd til alt dette.", errorRed, 4000);
+            } else if (response.statusCode === 404) {
+                // This shouldn't happen since we control the request
+                console.log(error);
+            } else if (response.statusCode === 201) {
+                confirmKryss();
             }
         });
 }
