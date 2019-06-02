@@ -14,6 +14,9 @@ function createWindow() {
         minHeight: 750,
         backgroundColor: '#1d1e1f',
         icon: path.join(__dirname, 'assets/icons/png/64x64.png'),
+        webPreferences: {
+            nodeIntegration: true,
+        }
     });
 
     // and load the index.html of the app.
