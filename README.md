@@ -3,6 +3,8 @@
 
 # XApp Electron
 
+<img width="1000" alt="Screenshot" src="https://user-images.githubusercontent.com/6738930/58763842-c762b400-8560-11e9-8764-384f6f25eb9a.png">
+
 This is a version of XApp built using the electron framework.
 
 
