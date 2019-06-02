@@ -11,5 +11,6 @@ This is a version of XApp built using the electron framework.
 ### Running  application
 
 * Clone the repo and cd into it
+* inside `assets/js/api.js`, provide your username/password at the top of the file.
 * Run `npm install`
 * Run `npm start`
