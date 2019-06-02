@@ -7,119 +7,64 @@ p, h1, h4, button {
     font-family: "Oxygen", 'sans-serif';
 }
 
-
-.button {
+.card {
     cursor: pointer;
-    background-color: rgb(43, 43, 43);
-    border: 1px solid white;
-    border-radius: 0.25rem;
 }
 
-.button:hover {
-    background-color: rgb(40, 100, 208);
+.card:hover {
+    box-shadow: inset 0 0 20px rgb(40, 100, 208);
 }
 
-.button:active {
-    background-color: rgb(32, 79, 165);
+.card:active {
+    box-shadow: inset 0 0 1000px rgb(32, 79, 165);
 }
 
 .emoji {
-    font-size: 80px;
-    margin-left: 10px;
-    margin-top: 10px;
+    font-size: 30pt;
 }
 
 .card-subtitle {
     color: rgb(133, 200, 255);
     font-weight: bold;
-    font-size: 18px;
+    font-size: 18pt;
 }
 
-
 .card-text {
-    max-width: 130px;
+    font-size: 10pt;
+
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
 }
 
-
 .badge {
     position: relative;
-    top: -155px;
-    right: -41%;
-    background: red;
-    color: white;
     visibility: hidden;
+    left: -20px;
+    top: -3px;
 }
 
 .sideBar {
-    display: inline-block;
-    text-align: center;
-    margin-left: auto;
-    margin-right: 800px;
-    margin-top: 30px;
+    margin: 15px 0 0 30px;
     width: 220px;
     user-select: none;
-}
+    z-index: 1;
 
-#kryssButton {
-    border-color: rgb(76, 217, 100);
-    background-color: rgb(76, 217, 100);
-}
-
-#kryssButton:hover {
-    border-color: rgb(42, 200, 69);
-    background-color: rgb(42, 200, 69);
-}
-
-#kryssButton:active {
-    border-color: rgb(38, 179, 62);
-    background-color: rgb(38, 179, 62);
-}
-
-#kryssButton:focus {
-    box-shadow: none;
-}
-
-#cancelButton {
-    border-color: rgb(255, 59, 48);
-    background-color: rgb(255, 59, 48);
-}
-
-#cancelButton:hover {
-    border-color: rgb(252, 13, 0);
-    background-color: rgb(252, 13, 0);
-}
-
-#cancelButton:active {
-    border-color: rgb(226, 12, 0);
-    background-color: rgb(226, 12, 0);
-}
-
-#cancelButton:focus {
-    box-shadow: none;
+    font-weight: bold;
+    font-size: 30px;
+    color: white;
 }
 
 #totalPrice {
     display: inline;
-    color: white;
-    font-weight: bold;
-    font-size: 30px;
 }
 
-#personName {
-    color: white;
-    font-weight: bold;
-    font-size: 30px;
+#person-spinner-div {
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 4;
     -webkit-box-orient: vertical;
-    height: 175px;
-    width: auto;
-    word-break: break-word;
 }
 
 #productListOverlay {

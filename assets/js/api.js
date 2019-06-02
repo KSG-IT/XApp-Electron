@@ -1,10 +1,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const baseUrl = 'https://ksg.tormodhaugland.com/api/';
-const auth = {user: 'funk', pass: '123456'};
+const baseUrl = 'https://ksgit.pythonanywhere.com/api/';
+const auth = {user: 'ksg_user', pass: fs.readFileSync('.pythonanywhere_password', 'utf8').replace(/\s$/, '')};
 // const baseUrl = 'http://localhost:8000/api/';
 // const auth = {user: 'admin', pass: '123456'};
+
 const request = require('request').defaults({baseUrl: baseUrl});
 const remote = require('electron').remote;
 
@@ -191,6 +192,10 @@ function getSociProducts() {
                             document.getElementById('productList').innerHTML += template({product: product});
                         });
                         localStorage.setItem('lowestPrice', lowestPrice.toString());
+                        setTimeout(() => {
+                            document.getElementById('spinner').style.display = 'none';
+                            document.getElementById('personName').style.display = 'block';
+                        }, 100);
                     }
                 })
             }
@@ -198,6 +203,10 @@ function getSociProducts() {
 }
 
 function getBalance() {
+    // Start spinner
+    document.getElementById('spinner').style.display = 'block';
+    document.getElementById('personName').style.display = 'none';
+
     request
         .get({
             url: '/economy/bank-accounts/balance',
@@ -217,6 +226,14 @@ function getBalance() {
 }
 
 function chargeBankAccount() {
+    // Disable buttons to prevent multiple API requests
+    applicationMenu.getMenuItemById('kryss').enabled = false;
+    document.getElementById('kryssButton').disabled = true;
+
+    // Start spinner
+    document.getElementById('spinner').style.display = 'block';
+    document.getElementById('personName').style.display = 'none';
+
     const bankAccount = JSON.parse(sessionStorage.getItem('bankAccount'));
     const request_data = JSON.parse(sessionStorage.getItem('productOrders'));
 
@@ -239,6 +256,8 @@ function chargeBankAccount() {
             } else if (response.statusCode === 404) {
                 // This shouldn't happen since we control the request
                 console.log(error);
+            } else if (response.statusCode === 424) {
+                showMessage("Kryssingen ble avbrutt: Det er ingen aktiv økt.", errorRed, 4000);
             } else if (response.statusCode === 201) {
                 confirmKryss();
             }

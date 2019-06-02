@@ -1,4 +1,5 @@
 const errorRed = 'rgb(255, 59, 48)';
+const backgroundBlack = 'rgb(29,30,31)';
 
 let textResetFunction;
 let applicationMenu = require('electron').remote.Menu.getApplicationMenu();
@@ -22,7 +23,9 @@ function showMessage(msg, color = 'cyan', timeout = 3000) {
      *  Use this function whenever the user performs a finishing action.
      *  The state will be reset, and a message will be shown for the timeout duration on the screen.
      */
+    document.getElementById('spinner').style.display = 'none';
     let textField = document.getElementById('personName');
+    textField.style.display = 'block';
     textResetFunction = setTimeout(() => {
         textField.style.color = 'white';
         textField.innerText = "Les kort...";
@@ -55,7 +58,9 @@ function completeLogin() {
         overlay.style.opacity = "1";
         overlay.style.pointerEvents = 'all';
 
+        document.getElementById('spinner').style.display = 'none';
         let personName = document.getElementById('personName');
+        personName.style.display = 'block';
         personName.style.color = balance < 200 ? 'yellow' : 'white';
         personName.innerText = bankAccount['user'];
         clearTimeout(textResetFunction);
@@ -74,7 +79,9 @@ function clearScreen() {
         badge.innerText = "0";
         badge.style.visibility = "hidden";
     });
-    document.getElementById('totalPrice').innerText = "0 kr";
+    let total = document.getElementById('totalPrice');
+    total.style.color = 'white';
+    total.innerText = "0 kr";
     sessionStorage.clear();
 
     let overlay = document.getElementById('productListOverlay');
@@ -99,7 +106,7 @@ function updateProductCount(gridItem, event) {
      */
     const productPrice = parseInt(gridItem.getElementsByClassName('card-subtitle')[0].innerText);
 
-    let badge = gridItem.parentElement.getElementsByTagName('span')[0];
+    let badge = gridItem.getElementsByTagName('span')[0];
     let count = parseInt(badge.innerText) || 0;
     let currentTotal = parseInt(document.getElementById('totalPrice').innerText.replace(/\s/g, ''));
 
@@ -119,7 +126,7 @@ function updateProductCount(gridItem, event) {
     document.getElementById('totalPrice').innerText = currentTotal.toLocaleString() + " kr";
 
     if (count >= 0) {
-        const skuNumber = gridItem.parentElement.getElementsByClassName('sku-number')[0].innerText;
+        const skuNumber = gridItem.getElementsByClassName('sku-number')[0].innerText;
         buildProductOrder(skuNumber, count);
     }
 
@@ -137,7 +144,7 @@ function checkIfTotalExceedsBalance(currentTotal) {
         textField.style.color = errorRed;
         textField.innerText = "- " + (currentTotal - bankAccount['balance']).toString() + " kr";
 
-        document.getElementById('totalPrice').hidden = true;
+        document.getElementById('totalPrice').style.color = backgroundBlack;
         document.getElementById('kryssButton').disabled = true;
         applicationMenu.getMenuItemById('kryss').enabled = false;
     } else {
@@ -145,7 +152,7 @@ function checkIfTotalExceedsBalance(currentTotal) {
         textField.style.color = 'white';
         textField.innerText = "Totalsum";
 
-        document.getElementById('totalPrice').hidden = false;
+        document.getElementById('totalPrice').style.color = 'white';
         document.getElementById('kryssButton').disabled = currentTotal === 0;
         applicationMenu.getMenuItemById('kryss').enabled = !(currentTotal === 0);
     }

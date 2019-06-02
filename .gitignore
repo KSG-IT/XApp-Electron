@@ -90,3 +90,7 @@ typings/
 
 .DS_Store
 release-builds/
+
+### Password and secrets
+
+.pythonanywhere_password
