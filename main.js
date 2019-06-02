@@ -8,10 +8,10 @@ let win;
 function createWindow() {
     // Create the browser window.
     win = new BrowserWindow({
-        width: 1150,
-        minWidth: 1150,
-        height: 750,
-        minHeight: 750,
+        width: 888,
+        minWidth: 888,
+        height: 606,
+        minHeight: 606,
         backgroundColor: '#1d1e1f',
         icon: path.join(__dirname, 'assets/icons/png/64x64.png'),
     });

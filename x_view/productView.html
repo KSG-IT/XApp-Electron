@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>X-App</title>
 
     <!--CSS Grid-->
     <link rel="stylesheet" href="../assets/css/grid.css">
@@ -22,28 +22,35 @@
 <div class="row no-gutters">
 
     <div class="sideBar">
-        <p id="personName">Les kort...</p>
-        <br>
+        <div id="person-spinner-div" style="height: 175px">
+            <p id="personName" style="display: none">Les kort...</p>
+            <div id="spinner" class="justify-content-center" style="padding-left: 10px">
+                <div class="spinner-border text-light m-5" style="width: 100px; height: 100px;" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+            </div>
+        </div>
+        <!--        <br>-->
+        <div style="padding-top: 20px"></div>
         <hr style="border: 1px solid white;">
-        <br>
-        <h1 id="totalPriceTitle" style="color: white; ">Totalsum</h1>
+        <!--        <br>-->
+        <div style="padding-top: 20px"></div>
+        <h1 id="totalPriceTitle">Totalsum</h1>
         <p id="totalPrice">0 kr</p>
         <br><br>
-        <button class="btn btn-lg btn-primary btn-block" id="kryssButton" type="submit" disabled
+        <button class="btn btn-lg btn-success btn-block" id="kryssButton" type="submit" disabled
                 onclick="chargeBankAccount()">
             Kryss (⏎ )
         </button>
-        <br><br>
-        <button class="btn btn-lg btn-primary btn-block" id="cancelButton" type="submit" disabled
+        <br>
+        <button class="btn btn-lg btn-danger btn-block" id="cancelButton" type="submit" disabled
                 onclick="cancelKryss()">
             Avbryt (esc)
         </button>
     </div>
 
-    <div style="margin-right: auto; margin-left: auto; justify-content: right">
-        <div id="productListOverlay">
-            <div class="grid-container" id="productList"></div>
-        </div>
+    <div id="productListOverlay">
+        <div class="grid-container" id="productList"></div>
     </div>
 
 </div>
