@@ -9,22 +9,9 @@
     right: -17px;
     overflow-y: scroll;
 
-    /*justify-content: center;*/
     padding: 20px 0 0 275px;
 }
 
 .grid-item {
-    /*padding: 10px;*/
-    /*text-align: center;*/
-    /*color: white;*/
     user-select: none;
-
-    /*width: 350px;*/
-    /*height: 160px;*/
-
-    /*white-space: nowrap;*/
-    /*overflow: hidden;*/
-    /*text-overflow: ellipsis;*/
-
-    /*justify-content: flex-start;*/
 }
