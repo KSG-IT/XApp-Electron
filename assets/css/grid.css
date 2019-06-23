@@ -14,4 +14,8 @@
 
 .grid-item {
     user-select: none;
+
+    width: 18rem;
+    max-height: 15rem;
+    cursor: pointer;
 }

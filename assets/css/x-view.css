@@ -7,10 +7,6 @@ p, h1, h4, button {
     font-family: "Oxygen", 'sans-serif';
 }
 
-.card {
-    cursor: pointer;
-}
-
 .card:hover {
     box-shadow: inset 0 0 20px rgb(40, 100, 208);
 }
@@ -19,8 +15,18 @@ p, h1, h4, button {
     box-shadow: inset 0 0 1000px rgb(32, 79, 165);
 }
 
-.emoji {
+.top-row {
     font-size: 30pt;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-title {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .card-subtitle {
@@ -70,4 +76,33 @@ p, h1, h4, button {
 #productListOverlay {
     opacity: .33;
     pointer-events: none;
+}
+
+.amountInputTool {
+    display: none;
+    cursor: default;
+}
+
+.numpad {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+    padding: 10px;
+
+    justify-content: space-evenly;
+}
+
+.numpad-btn {
+    cursor: pointer;
+    pointer-events: all;
+}
+
+.numpad-controls {
+    display: flex;
+    justify-content: space-around;
+    padding-top: 10px;
+}
+
+.btn:disabled {
+    cursor: not-allowed;
 }

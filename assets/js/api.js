@@ -179,25 +179,26 @@ function getSociProducts() {
             } else if (response.statusCode === 200) {
                 const products = JSON.parse(body);
 
-                fs.readFile(path.join(__dirname, '../assets/templates/productCardTemplate.hbs'), (error, data) => {
-                    if (error) {
-                        console.log(error);
-                    } else {
-                        const template = handlebars.compile(data.toString());
-                        let lowestPrice = Infinity;
-                        products.forEach((product) => {
-                            if (product.price < lowestPrice) {
-                                lowestPrice = product.price
-                            }
-                            document.getElementById('productList').innerHTML += template({product: product});
-                        });
-                        localStorage.setItem('lowestPrice', lowestPrice.toString());
-                        setTimeout(() => {
-                            document.getElementById('spinner').style.display = 'none';
-                            document.getElementById('personName').style.display = 'block';
-                        }, 100);
+                const template = handlebars.compile(fs.readFileSync(
+                    path.join(__dirname, '../assets/templates/productCardTemplate.hbs')).toString());
+
+                let lowestPrice = Infinity;
+                products.forEach((product) => {
+                    if (product.sku_number === 'X-BELOP') {
+                        product.price = "_____";
                     }
-                })
+
+                    document.getElementById('productList').innerHTML += template({product: product});
+
+                    if (typeof product.price == 'number' && product.price < lowestPrice) {
+                        lowestPrice = product.price
+                    }
+                });
+                localStorage.setItem('lowestPrice', lowestPrice.toString());
+                setTimeout(() => {
+                    document.getElementById('spinner').style.display = 'none';
+                    document.getElementById('personName').style.display = 'block';
+                }, 100);
             }
         });
 }
@@ -229,6 +230,8 @@ function chargeBankAccount() {
     // Disable buttons to prevent multiple API requests
     applicationMenu.getMenuItemById('kryss').enabled = false;
     document.getElementById('kryssButton').disabled = true;
+    applicationMenu.getMenuItemById('cancel').enabled = false;
+    document.getElementById('cancelButton').disabled = true;
 
     // Start spinner
     document.getElementById('spinner').style.display = 'block';
