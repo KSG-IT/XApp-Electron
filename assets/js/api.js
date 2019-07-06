@@ -7,6 +7,7 @@ const auth = {user: 'ksg_user', pass: fs.readFileSync('.pythonanywhere_password'
 // const auth = {user: 'admin', pass: '123456'};
 
 const request = require('request').defaults({baseUrl: baseUrl});
+const requestPromise = require('request-promise-native').defaults({baseUrl: baseUrl, json: true});
 const remote = require('electron').remote;
 
 const currentWindow = remote.getCurrentWindow();
@@ -168,39 +169,31 @@ function invalidateToken() {
 function getSociProducts() {
     localStorage.clear();
 
-    request
-        .get({
-            url: '/economy/products',
-            auth: auth,
-            // headers: {Authorization: 'JWT TOKEN_HERE'}
-        }, (error, response, body) => {
-            if (error) {
-                console.log(error);
-            } else if (response.statusCode === 200) {
-                const products = JSON.parse(body);
+    requestPromise({
+        method: 'GET',
+        uri: '/economy/products',
+        auth: auth,
+        // headers: {Authorization: 'JWT TOKEN_HERE'},
+    }).then(products => {
+        function buildProductList(products) {
+            const template = handlebars.compile(fs.readFileSync(
+                path.join(__dirname, '../assets/templates/productCardTemplate.hbs')).toString());
 
-                const template = handlebars.compile(fs.readFileSync(
-                    path.join(__dirname, '../assets/templates/productCardTemplate.hbs')).toString());
-
-                let lowestPrice = Infinity;
-                products.forEach((product) => {
-                    if (product.sku_number === 'X-BELOP') {
-                        product.price = "_____";
-                    }
-
-                    document.getElementById('productList').innerHTML += template({product: product});
-
-                    if (typeof product.price == 'number' && product.price < lowestPrice) {
-                        lowestPrice = product.price
-                    }
-                });
-                localStorage.setItem('lowestPrice', lowestPrice.toString());
-                setTimeout(() => {
-                    document.getElementById('spinner').style.display = 'none';
-                    document.getElementById('personName').style.display = 'block';
-                }, 100);
-            }
-        });
+            let lowestPrice = Infinity;
+            products.forEach((product) => {
+                if (product.sku_number === 'X-BELOP') product.price = "_____";
+                document.getElementById('productList').innerHTML += template({product: product});
+                if (typeof product.price == 'number' && product.price < lowestPrice) lowestPrice = product.price;
+            });
+            localStorage.setItem('lowestPrice', lowestPrice.toString());
+            setTimeout(() => {
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('personName').style.display = 'block';
+            }, 100);
+        }
+    }).catch(error => {
+        console.log(error);
+    });
 }
 
 function getBalance() {
@@ -208,22 +201,23 @@ function getBalance() {
     document.getElementById('spinner').style.display = 'block';
     document.getElementById('personName').style.display = 'none';
 
-    request
-        .get({
-            url: '/economy/bank-accounts/balance',
-            auth: auth,
-            // headers: {Authorization: 'JWT TOKEN_HERE'}
-            qs: {card_uuid: sessionStorage.getItem('cardNumber')}
-        }, (error, response, body) => {
-            if (error) {
-                console.log(error);
-            } else if (response.statusCode === 404) {
-                showMessage("Fant ikke kortnummeret. Har du lagt inn riktig?");
-            } else if (response.statusCode === 200) {
-                sessionStorage.setItem('bankAccount', body.toString());
-                completeLogin();
-            }
-        });
+    requestPromise({
+        method: 'GET',
+        url: '/economy/bank-accounts/balance',
+        auth: auth,
+        // headers: {Authorization: 'JWT TOKEN_HERE'}
+        qs: {card_uuid: sessionStorage.getItem('cardNumber')},
+        json: false
+    }).then(account => {
+        sessionStorage.setItem('bankAccount', account);
+        completeLogin();
+    }).catch(error => {
+        if (error.statusCode === 404) {
+            showMessage("Fant ikke kortnummeret. Har du lagt inn riktig?");
+        } else {
+            console.log(error);
+        }
+    });
 }
 
 function chargeBankAccount() {
@@ -240,29 +234,27 @@ function chargeBankAccount() {
     const bankAccount = JSON.parse(sessionStorage.getItem('bankAccount'));
     const request_data = JSON.parse(sessionStorage.getItem('productOrders'));
 
-    request
-        .post({
-            url: '/economy/bank-accounts/' + bankAccount['id'] + '/charge',
-            auth: auth,
-            // headers: {Authorization: 'JWT TOKEN_HERE'}
-            body: request_data,
-            json: true
-        }, (error, response, body) => {
-
-            if (error) {
-                console.log(error);
-            } else if (response.statusCode === 400) {
-                // This shouldn't happen since we control the request
-                console.log(error);
-            } else if (response.statusCode === 402) {
-                showMessage("Kryssingen ble avbrutt: Du har ikke råd til alt dette.", errorRed, 4000);
-            } else if (response.statusCode === 404) {
-                // This shouldn't happen since we control the request
-                console.log(error);
-            } else if (response.statusCode === 424) {
-                showMessage("Kryssingen ble avbrutt: Det er ingen aktiv økt.", errorRed, 4000);
-            } else if (response.statusCode === 201) {
-                confirmKryss();
-            }
-        });
+    requestPromise({
+        method: 'POST',
+        url: '/economy/bank-accounts/' + bankAccount['id'] + '/charge',
+        auth: auth,
+        // headers: {Authorization: 'JWT TOKEN_HERE'}
+        body: request_data,
+    }).then(body => {
+        confirmKryss();
+    }).catch(error => {
+        if (error.statusCode === 400) {
+            // This shouldn't happen since we control the request
+            console.log(error);
+        } else if (error.statusCode === 402) {
+            showMessage("Kryssingen ble avbrutt: Du har ikke råd til alt dette.", errorRed, 4000);
+        } else if (error.statusCode === 404) {
+            // This shouldn't happen since we control the request
+            console.log(error);
+        } else if (error.statusCode === 424) {
+            showMessage("Kryssingen ble avbrutt: Det er ingen aktiv økt.", errorRed, 4000);
+        } else {
+            console.log(error);
+        }
+    });
 }
