@@ -175,22 +175,20 @@ function getSociProducts() {
         auth: auth,
         // headers: {Authorization: 'JWT TOKEN_HERE'},
     }).then(products => {
-        function buildProductList(products) {
-            const template = handlebars.compile(fs.readFileSync(
-                path.join(__dirname, '../assets/templates/productCardTemplate.hbs')).toString());
+        const template = handlebars.compile(fs.readFileSync(
+            path.join(__dirname, '../assets/templates/productCardTemplate.hbs')).toString());
 
-            let lowestPrice = Infinity;
-            products.forEach((product) => {
-                if (product.sku_number === 'X-BELOP') product.price = "_____";
-                document.getElementById('productList').innerHTML += template({product: product});
-                if (typeof product.price == 'number' && product.price < lowestPrice) lowestPrice = product.price;
-            });
-            localStorage.setItem('lowestPrice', lowestPrice.toString());
-            setTimeout(() => {
-                document.getElementById('spinner').style.display = 'none';
-                document.getElementById('personName').style.display = 'block';
-            }, 100);
-        }
+        let lowestPrice = Infinity;
+        products.forEach((product) => {
+            if (product.sku_number === 'X-BELOP') product.price = "_____";
+            document.getElementById('productList').innerHTML += template({product: product});
+            if (typeof product.price == 'number' && product.price < lowestPrice) lowestPrice = product.price;
+        });
+        localStorage.setItem('lowestPrice', lowestPrice.toString());
+        setTimeout(() => {
+            document.getElementById('spinner').style.display = 'none';
+            document.getElementById('personName').style.display = 'block';
+        }, 100);
     }).catch(error => {
         console.log(error);
     });
