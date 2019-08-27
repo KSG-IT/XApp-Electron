@@ -199,7 +199,7 @@ function buildProductOrder(skuNumber, count, directChargeAmount = null) {
     if (index === -1 && count > 0) {
         let data = {sku: skuNumber, order_size: count};
         if (directChargeAmount != null) {
-            data['direct_charge_amount'] = directChargeAmount;
+            data['order_size'] = directChargeAmount;
         }
         productOrdersArray.push(data);
     } else if (count === 0) {
