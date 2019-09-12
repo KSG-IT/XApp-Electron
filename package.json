@@ -5,7 +5,7 @@
   "main": "main.js",
   "dependencies": {
     "bootstrap": "4.3.1",
-    "electron": "6.0.4",
+    "electron": "6.0.9",
     "handlebars": "4.1.2",
     "jquery": "3.4.1",
     "popper.js": "1.15.0",
