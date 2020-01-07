@@ -92,5 +92,3 @@ typings/
 release-builds/
 
 ### Password and secrets
-
-.pythonanywhere_password

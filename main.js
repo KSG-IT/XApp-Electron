@@ -20,8 +20,7 @@ function createWindow() {
     });
 
     // and load the index.html of the app.
-    win.loadFile('x_view/productView.html');
-    // win.loadFile('index.html');
+    win.loadFile('index.html');
 
     // Open the DevTools.
     // win.webContents.openDevTools();
@@ -82,15 +81,6 @@ function buildMenuFromTemplate() {
             label: 'Kryss',
             submenu: [
                 {
-                    id: 'scan',
-                    label: 'Mock card scan',
-                    accelerator: 'CommandOrControl+S',
-                    click: () => {
-                        win.webContents.send('login');
-                    }
-                },
-                {type: 'separator'},
-                {
                     id: 'cancel',
                     label: 'Cancel kryss',
                     accelerator: 'Escape',
@@ -103,7 +93,7 @@ function buildMenuFromTemplate() {
                 {
                     id: 'kryss',
                     label: 'Confirm kryss',
-                    accelerator: 'Enter',
+                    accelerator: 'x',
                     enabled: false,
                     click: () => {
                         win.webContents.send('kryss');

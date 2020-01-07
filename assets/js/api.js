@@ -1,10 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const baseUrl = 'https://ksgit.pythonanywhere.com/api/';
-const auth = {user: 'ksg_user', pass: fs.readFileSync('.pythonanywhere_password', 'utf8').replace(/\s$/, '')};
+const baseUrl = 'https://ksg.alexanderorvik.com/api/';
 // const baseUrl = 'http://localhost:8000/api/';
-// const auth = {user: 'admin', pass: '123456'};
 
 const request = require('request').defaults({baseUrl: baseUrl});
 const requestPromise = require('request-promise-native').defaults({baseUrl: baseUrl, json: true});
@@ -50,7 +48,7 @@ function obtainAuthenticationToken(loginForm) {
 
     request
         .post({
-            url: '/authentication/obtain-token', form: {username: 'funk', password: loginForm.password.value}
+            url: '/authentication/obtain-token', form: {card_uuid: loginForm.cardNumber.value}
         }, (error, response, body) => {
 
             if (error) {
@@ -65,15 +63,17 @@ function obtainAuthenticationToken(loginForm) {
                         console.error(error);
                         document.getElementById('loginOutput').innerText = error.message;
                     } else {
-                        currentWindow.loadFile('./api/api.html');
+                        // We need the card number for other API calls later on.
+                        sessionStorage.setItem('cardNumber', loginForm.cardNumber.value);
+                        currentWindow.loadFile('./x_view/productView.html');
+                        getBalance();
                     }
                 })
 
             } else {
                 document.getElementById('loginOutput').innerText =
-                    "Sorry! Du må være funksjonær for å kunne åpne Soci.";
+                    "Sorry! Dette kortnummeret kan ikke brukes til å åpne Soci.";
             }
-            document.getElementById('loginSubmit').disabled = false;
         });
 
     return false;
@@ -162,36 +162,36 @@ function invalidateToken() {
     document.getElementById('invalidateToken').disabled = true;
 
     window.setTimeout(() => {
-        currentWindow.loadFile('./api/index.html');
+        currentWindow.loadFile('./index.html');
     }, 3000);
 }
 
 function getSociProducts() {
     localStorage.clear();
+    readAuthenticationCookie((error, token) => {
+        requestPromise({
+            method: 'GET',
+            url: '/economy/products',
+            headers: {Authorization: "JWT " + token},
+        }).then(products => {
+            const template = handlebars.compile(fs.readFileSync(
+                path.join(__dirname, '../assets/templates/productCardTemplate.hbs')).toString());
 
-    requestPromise({
-        method: 'GET',
-        uri: '/economy/products',
-        auth: auth,
-        // headers: {Authorization: 'JWT TOKEN_HERE'},
-    }).then(products => {
-        const template = handlebars.compile(fs.readFileSync(
-            path.join(__dirname, '../assets/templates/productCardTemplate.hbs')).toString());
-
-        let lowestPrice = Infinity;
-        products.forEach((product) => {
-            if (product.sku_number === 'X-BELOP') product.price = "_____";
-            document.getElementById('productList').innerHTML += template({product: product});
-            if (typeof product.price == 'number' && product.price < lowestPrice) lowestPrice = product.price;
+            let lowestPrice = Infinity;
+            products.forEach((product) => {
+                if (product.sku_number === 'X-BELOP') product.price = "_____";
+                document.getElementById('productList').innerHTML += template({product: product});
+                if (typeof product.price == 'number' && product.price < lowestPrice) lowestPrice = product.price;
+            });
+            localStorage.setItem('lowestPrice', lowestPrice.toString());
+            setTimeout(() => {
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('personName').style.display = 'block';
+            }, 100);
+        }).catch(error => {
+            console.log(error);
         });
-        localStorage.setItem('lowestPrice', lowestPrice.toString());
-        setTimeout(() => {
-            document.getElementById('spinner').style.display = 'none';
-            document.getElementById('personName').style.display = 'block';
-        }, 100);
-    }).catch(error => {
-        console.log(error);
-    });
+    })
 }
 
 function getBalance() {
@@ -199,23 +199,24 @@ function getBalance() {
     document.getElementById('spinner').style.display = 'block';
     document.getElementById('personName').style.display = 'none';
 
-    requestPromise({
-        method: 'GET',
-        url: '/economy/bank-accounts/balance',
-        auth: auth,
-        // headers: {Authorization: 'JWT TOKEN_HERE'}
-        qs: {card_uuid: sessionStorage.getItem('cardNumber')},
-        json: false
-    }).then(account => {
-        sessionStorage.setItem('bankAccount', account);
-        completeLogin();
-    }).catch(error => {
-        if (error.statusCode === 404) {
-            showMessage("Fant ikke kortnummeret. Har du lagt inn riktig?");
-        } else {
-            console.log(error);
-        }
-    });
+    readAuthenticationCookie((error, token) => {
+        requestPromise({
+            method: 'GET',
+            url: '/economy/bank-accounts/balance',
+            headers: {Authorization: "JWT " + token},
+            qs: {card_uuid: sessionStorage.getItem('cardNumber')},
+            json: false
+        }).then(account => {
+            sessionStorage.setItem('bankAccount', account);
+            completeLogin();
+        }).catch(error => {
+            if (error.statusCode === 404) {
+                showMessage("Fant ikke kortnummeret. Har du lagt inn riktig?");
+            } else {
+                console.log(error);
+            }
+        });
+    })
 }
 
 function chargeBankAccount() {
@@ -232,27 +233,28 @@ function chargeBankAccount() {
     const bankAccount = JSON.parse(sessionStorage.getItem('bankAccount'));
     const request_data = JSON.parse(sessionStorage.getItem('productOrders'));
 
-    requestPromise({
-        method: 'POST',
-        url: '/economy/bank-accounts/' + bankAccount['id'] + '/charge',
-        auth: auth,
-        // headers: {Authorization: 'JWT TOKEN_HERE'}
-        body: request_data,
-    }).then(body => {
-        confirmKryss();
-    }).catch(error => {
-        if (error.statusCode === 400) {
-            // This shouldn't happen since we control the request
-            console.log(error);
-        } else if (error.statusCode === 402) {
-            showMessage("Kryssingen ble avbrutt: Du har ikke råd til alt dette.", errorRed, 4000);
-        } else if (error.statusCode === 404) {
-            // This shouldn't happen since we control the request
-            console.log(error);
-        } else if (error.statusCode === 424) {
-            showMessage("Kryssingen ble avbrutt: Det er ingen aktiv økt.", errorRed, 4000);
-        } else {
-            console.log(error);
-        }
+    readAuthenticationCookie((error, token) => {
+        requestPromise({
+            method: 'POST',
+            url: '/economy/bank-accounts/' + bankAccount['id'] + '/charge',
+            headers: {Authorization: "JWT " + token},
+            body: request_data,
+        }).then(body => {
+            confirmKryss();
+        }).catch(error => {
+            if (error.statusCode === 400) {
+                // This shouldn't happen since we control the request
+                console.log(error);
+            } else if (error.statusCode === 402) {
+                showMessage("Kryssingen ble avbrutt: Du har ikke råd til alt dette.", errorRed, 4000);
+            } else if (error.statusCode === 404) {
+                // This shouldn't happen since we control the request
+                console.log(error);
+            } else if (error.statusCode === 424) {
+                showMessage("Kryssingen ble avbrutt: Det er ingen aktiv økt.", errorRed, 4000);
+            } else {
+                console.log(error);
+            }
+        });
     });
 }
