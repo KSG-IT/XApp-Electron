@@ -7,57 +7,38 @@
     <script src="assets/js/api.js"></script>
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
 
     <!-- Custom styles for this template -->
     <link href="assets/css/floating-labels.css" rel="stylesheet">
+    <link href="assets/css/animations.css" rel="stylesheet">
 </head>
 <body>
 
-<form id="loginForm" class="form-signin" method="post" onsubmit="return obtainAuthenticationToken(this)">
+<form id="loginForm" class="form-signin" style="user-select: none;">
     <div class="text-center mb-4">
-        <img class="mb-4" src="assets/images/ksg-logo-white-on-black.png" alt="" width="150" height="150"
-             style="border-radius: 50%">
+        <img id="ksg-logo" class="mb-4" src="assets/images/ksg-logo-white-on-black.png" alt="" width="150" height="150"
+             style="border-radius: 50%;">
         <h1 class="h3 mb-3 font-weight-normal">X-App</h1>
-        <p>Vennligst bekreft åpning ved å skrive inn ditt passord.</p>
-
-        <br><br>
-        <div class="form-label-group">
-            <input name="password" type="password" id="inputPassword" class="form-control" placeholder="Passord"
-                   required onkeypress="resetForm(this)">
-            <label for="inputPassword">Passord</label>
-        </div>
+        <p>Vennligst skann kortet ditt for å åpne Soci.</p>
+        <input name="cardNumber" type="hidden" id="cardNumberInput" required>
         <p id="loginOutput" style="color: deeppink"></p>
-        <br>
-        <button class="btn btn-lg btn-primary btn-block" id="loginSubmit" type="submit" onclick="handleSubmit(this)"
-                onsubmit="handleSubmit(this)">
-            Åpne Soci
-        </button>
-        <br>
-
     </div>
 </form>
-
-<script type="text/javascript">
-    readAuthenticationCookie((error, token) => {
-        if (token) document.location = 'api.html';
-    });
-
-    function handleSubmit(loginButton) {
-        if (loginButton.form.password.value.length !== 0) {
-            setTimeout(() => {
-                loginButton.disabled = true;
-            }, 1);
-        }
-    }
-
-    function resetForm(passwordField) {
-        if (document.getElementById('loginOutput').innerText !== "") {
-            passwordField.form.reset();
-            document.getElementById('loginOutput').innerText = "";
-        }
-    }
-</script>
 </body>
 </html>
+<script type="text/javascript">
+    // Takes card reader and appends it to the hidden card number input field.
+    document.onkeydown = function (event) {
+        if (event.key === "Enter") {
+            const loginForm = document.getElementById("loginForm");
+            obtainAuthenticationToken(loginForm);
+            loginForm.cardNumber.value = "";
+            setTimeout(() => {
+                document.getElementById("loginOutput").innerText = "";
+            }, 3000);
+        } else {
+            document.getElementById("cardNumberInput").value += event.key;
+        }
+    };
+</script>

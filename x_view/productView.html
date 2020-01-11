@@ -37,13 +37,14 @@
         <br><br>
         <button class="btn btn-lg btn-success btn-block" id="kryssButton" type="submit" disabled
                 onclick="chargeBankAccount()">
-            Kryss (⏎ )
+            Kryss (x)
         </button>
         <br>
         <button class="btn btn-lg btn-danger btn-block" id="cancelButton" type="submit" disabled
                 onclick="cancelKryss()">
             Avbryt (esc)
         </button>
+        <input name="productViewCardNumber" type="hidden" id="productViewCardNumberInput" required>
     </div>
 
     <div id="productListOverlay">
@@ -53,7 +54,18 @@
 </div>
 
 </body>
-<script>
+<script type="text/javascript">
     getSociProducts();
+
+    // Takes card reader and appends it to the hidden card number input field.
+    document.onkeydown = function (event) {
+        if (event.key === "Enter" && !sessionStorage.getItem("cardNumber")) {
+            sessionStorage.setItem("cardNumber", document.getElementById("productViewCardNumberInput").value);
+            getBalance();
+            document.getElementById("productViewCardNumberInput").value = "";
+        } else {
+            document.getElementById("productViewCardNumberInput").value += event.key;
+        }
+    };
 </script>
 </html>

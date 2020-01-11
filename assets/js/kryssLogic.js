@@ -4,12 +4,6 @@ const backgroundBlack = 'rgb(29,30,31)';
 let textResetFunction;
 let applicationMenu = require('electron').remote.Menu.getApplicationMenu();
 
-// TODO: Replace this with the card reader
-require('electron').ipcRenderer.on('login', (event, message) => {
-    sessionStorage.setItem('cardNumber', "1234567890");
-    getBalance();
-});
-
 require('electron').ipcRenderer.on('cancel', (event, message) => {
     cancelKryss();
 });
@@ -65,7 +59,6 @@ function completeLogin() {
         personName.innerText = bankAccount['user'];
         clearTimeout(textResetFunction);
 
-        applicationMenu.getMenuItemById('scan').enabled = false;
         applicationMenu.getMenuItemById('cancel').enabled = true;
         document.getElementById('cancelButton').disabled = false;
 
@@ -73,7 +66,7 @@ function completeLogin() {
             if (skuElement.innerText === 'X-BELOP') {
                 let card = skuElement.parentElement.parentElement;
                 card.getElementsByClassName('card-subtitle')[0].innerText = "_____ kr";
-                card.style.pointerEvents='all';
+                card.style.pointerEvents = 'all';
             }
         });
     }
@@ -108,11 +101,11 @@ function clearScreen() {
     textField.innerText = "Totalsum";
     document.getElementById('totalPrice').hidden = false;
 
-    applicationMenu.getMenuItemById('scan').enabled = true;
     applicationMenu.getMenuItemById('cancel').enabled = false;
     applicationMenu.getMenuItemById('kryss').enabled = false;
     document.getElementById('kryssButton').disabled = true;
     document.getElementById('cancelButton').disabled = true;
+    document.getElementById("productViewCardNumberInput").value = "";
 }
 
 function updateProductCount(card, event) {
