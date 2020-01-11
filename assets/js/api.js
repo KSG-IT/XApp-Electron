@@ -4,7 +4,6 @@ const path = require('path');
 const baseUrl = 'https://ksg.alexanderorvik.com/api/';
 // const baseUrl = 'http://localhost:8000/api/';
 
-const request = require('request').defaults({baseUrl: baseUrl});
 const requestPromise = require('request-promise-native').defaults({baseUrl: baseUrl, json: true});
 const remote = require('electron').remote;
 
@@ -46,37 +45,32 @@ function deleteAuthenticationCookie() {
 
 function obtainAuthenticationToken(loginForm) {
 
-    request
-        .post({
-            url: '/authentication/obtain-token', form: {card_uuid: loginForm.cardNumber.value}
-        }, (error, response, body) => {
-
+    requestPromise({
+        method: 'POST',
+        url: '/authentication/obtain-token',
+        body: {card_uuid: loginForm.cardNumber.value},
+    }).then(body => {
+        writeAuthenticationCookie(body.token, (error) => {
             if (error) {
-                document.getElementById('loginOutput').innerText =
-                    "Oisann, noe gikk galt! Vennligst sjekk om maskinen har internettilkobling.";
-
-            } else if (response.statusCode === 200) {
-                const token = JSON.parse(body).token;
-
-                writeAuthenticationCookie(token, (error) => {
-                    if (error) {
-                        console.error(error);
-                        document.getElementById('loginOutput').innerText = error.message;
-                    } else {
-                        // We need the card number for other API calls later on.
-                        sessionStorage.setItem('cardNumber', loginForm.cardNumber.value);
-                        currentWindow.loadFile('./x_view/productView.html');
-                        getBalance();
-                    }
-                })
-
+                console.error(error);
+                document.getElementById('loginOutput').innerText = error.message;
             } else {
-                document.getElementById('loginOutput').innerText =
-                    "Sorry! Dette kortnummeret kan ikke brukes til å åpne Soci.";
+                // We need the card number for other API calls later on.
+                sessionStorage.setItem('cardNumber', loginForm.cardNumber.value);
+                currentWindow.loadFile('./x_view/productView.html');
+                getBalance();
             }
-        });
-
-    return false;
+        })
+    }).catch(error => {
+        if (error.statusCode === 401) {
+            document.getElementById('loginOutput').innerText =
+                "Sorry! Dette kortnummeret kan ikke brukes til å åpne Soci.";
+        } else {
+            document.getElementById('loginOutput').innerText =
+                "Oisann, noe gikk galt! Vennligst sjekk om maskinen har internettilkobling.";
+        }
+        return false;
+    });
 }
 
 function verifyAuthenticationToken() {
@@ -86,20 +80,20 @@ function verifyAuthenticationToken() {
             console.error(error);
             document.getElementById('output').innerText = error.message;
         }
-        request
-            .post({url: '/authentication/verify-token', form: {token: token}}, (error, response) => {
-
-                if (error) {
-                    document.getElementById('output').innerText =
-                        "Connection error. Please check your internet connection";
-
-                } else if (response.statusCode === 200) {
-                    document.getElementById('output').innerText = "Token is still valid!";
-
-                } else {
-                    document.getElementById('output').innerText = "Token has expired!";
-                }
-            })
+        requestPromise({
+            method: 'POST',
+            url: '/authentication/verify-token',
+            body: {token: token}
+        }).then(() => {
+            document.getElementById('output').innerText = "Token is still valid!";
+        }).catch(error => {
+            if (error.statusCode === 401) {
+                document.getElementById('output').innerText = "Token has expired!";
+            } else {
+                document.getElementById('output').innerText =
+                    "Connection error. Please check your internet connection";
+            }
+        })
     })
 }
 
@@ -110,42 +104,40 @@ function refreshAuthenticationToken(token) {
             console.error(error);
             document.getElementById('output').innerText = error.message;
         }
-        request
-            .post({url: '/authentication/refresh-token', form: {token: token}}, (error, response, body) => {
 
+        requestPromise({
+            method: 'POST',
+            url: '/authentication/refresh-token',
+            body: {token: token},
+        }).then(body => {
+            writeAuthenticationCookie(body.token, (error) => {
                 if (error) {
-                    document.getElementById('output').innerText =
-                        "Connection error. Please check your internet connection";
-
-                } else if (response.statusCode === 200) {
-                    let token = JSON.parse(body).token;
-
-                    writeAuthenticationCookie(token, (error) => {
+                    console.error(error);
+                    document.getElementById('output').innerText = error.message;
+                } else {
+                    readAuthenticationCookie((error, token) => {
                         if (error) {
                             console.error(error);
                             document.getElementById('output').innerText = error.message;
                         } else {
-
-                            readAuthenticationCookie((error, token) => {
-                                if (error) {
-                                    console.error(error);
-                                    document.getElementById('output').innerText = error.message;
-                                } else {
-                                    document.getElementById('output').innerHTML =
-                                        "Token refreshed successfully!"
-                                        + "<br><br>"
-                                        + "Your new token is: "
-                                        + "<br>"
-                                        + token;
-                                }
-                            })
+                            document.getElementById('output').innerHTML =
+                                "Token refreshed successfully!"
+                                + "<br><br>"
+                                + "Your new token is: "
+                                + "<br>"
+                                + token;
                         }
                     })
-
-                } else {
-                    document.getElementById('output').innerText = "Token has expired!";
                 }
             })
+        }).catch(error => {
+            if (error.statusCode === 401) {
+                document.getElementById('output').innerText = "Token has expired!";
+            } else {
+                document.getElementById('output').innerText =
+                    "Connection error. Please check your internet connection";
+            }
+        })
     })
 }
 
