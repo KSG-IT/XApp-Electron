@@ -1,71 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>X-App</title>
 
     <!--CSS Grid-->
-    <link rel="stylesheet" href="../assets/css/grid.css">
+    <link rel="stylesheet" href="../assets/css/grid.css" />
 
     <!--Experiment-->
-    <link rel="stylesheet" href="../assets/css/x-view.css">
+    <link rel="stylesheet" href="../assets/css/x-view.css" />
     <script type="text/javascript" src="../assets/js/kryssLogic.js"></script>
 
     <!--API-->
     <script type="text/javascript" src="../assets/js/api.js"></script>
 
     <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.css">
-</head>
-<body style="background-color: #1d1e1f; overflow: hidden; width: 100%; height: 100%">
-<div class="row no-gutters">
-
-    <div class="sideBar">
-        <div id="person-spinner-div" style="height: 175px">
-            <p id="personName" style="display: none">Les kort...</p>
-            <div id="spinner" class="justify-content-center" style="padding-left: 10px">
-                <div class="spinner-border text-light m-5" style="width: 100px; height: 100px;" role="status">
-                    <span class="sr-only">Loading...</span>
-                </div>
+    <link
+      rel="stylesheet"
+      href="../node_modules/bootstrap/dist/css/bootstrap.css"
+    />
+  </head>
+  <body
+    style="
+      background-color: #1d1e1f;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    "
+  >
+    <div class="row no-gutters">
+      <div class="sideBar">
+        <div id="person-spinner-div" style="height: 175px;">
+          <p id="personName" style="display: none;">Les kort...</p>
+          <div
+            id="spinner"
+            class="justify-content-center"
+            style="padding-left: 10px;"
+          >
+            <div
+              class="spinner-border text-light m-5"
+              style="width: 100px; height: 100px;"
+              role="status"
+            >
+              <span class="sr-only">Loading...</span>
             </div>
+          </div>
         </div>
-        <div style="padding-top: 20px"></div>
-        <hr style="border: 1px solid white;">
-        <div style="padding-top: 20px"></div>
+        <div style="padding-top: 20px;"></div>
+        <hr style="border: 1px solid white;" />
+        <div style="padding-top: 20px;"></div>
         <h1 id="totalPriceTitle">Totalsum</h1>
         <p id="totalPrice">0 kr</p>
-        <br><br>
-        <button class="btn btn-lg btn-success btn-block" id="kryssButton" type="submit" disabled
-                onclick="chargeBankAccount()">
-            Kryss (x)
+        <br /><br />
+        <button
+          class="btn btn-lg btn-success btn-block"
+          id="kryssButton"
+          type="submit"
+          disabled
+          onclick="chargeBankAccount()"
+        >
+          Kryss (x)
         </button>
-        <br>
-        <button class="btn btn-lg btn-danger btn-block" id="cancelButton" type="submit" disabled
-                onclick="cancelKryss()">
-            Avbryt (esc)
+        <br />
+        <button
+          class="btn btn-lg btn-danger btn-block"
+          id="cancelButton"
+          type="submit"
+          disabled
+          onclick="cancelKryss()"
+        >
+          Avbryt (esc)
         </button>
-        <input name="productViewCardNumber" type="hidden" id="productViewCardNumberInput" required>
-    </div>
+        <input
+          name="productViewCardNumber"
+          type="hidden"
+          id="productViewCardNumberInput"
+          required
+        />
+      </div>
 
-    <div id="productListOverlay">
+      <div id="productListOverlay">
         <div class="grid-container" id="productList"></div>
+      </div>
     </div>
-
-</div>
-
-</body>
-<script type="text/javascript">
+  </body>
+  <script type="text/javascript">
     getSociProducts();
 
     // Takes card reader and appends it to the hidden card number input field.
     document.onkeydown = function (event) {
-        if (event.key === "Enter" && !sessionStorage.getItem("cardNumber")) {
-            sessionStorage.setItem("cardNumber", document.getElementById("productViewCardNumberInput").value);
-            getBalance();
-            document.getElementById("productViewCardNumberInput").value = "";
-        } else {
-            document.getElementById("productViewCardNumberInput").value += event.key;
-        }
+      if (event.key === "Enter" && !sessionStorage.getItem("cardNumber")) {
+        sessionStorage.setItem(
+          "cardNumber",
+          document.getElementById("productViewCardNumberInput").value
+        );
+        getBalance();
+        document.getElementById("productViewCardNumberInput").value = "";
+      } else {
+        document.getElementById("productViewCardNumberInput").value +=
+          event.key;
+      }
     };
-</script>
+  </script>
 </html>
