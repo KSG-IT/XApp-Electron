@@ -1,7 +1,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/ksg-it/xapp-electron/badge)](https://www.codefactor.io/repository/github/ksg-it/xapp-electron)
 [![Known Vulnerabilities](https://snyk.io/test/github/KSG-IT/XApp-Electron/badge.svg?targetFile=package.json)](https://snyk.io/test/github/KSG-IT/XApp-Electron?targetFile=package.json)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
-
+[![Continuous Integration](https://github.com/KSG-IT/XApp-Electron/workflows/Electron%20CI/badge.svg)](https://github.com/KSG-IT/XApp-Electron/actions?query=branch%3Amaster)
 
 # XApp Electron
 
