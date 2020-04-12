@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="6ddca4de-18be-44eb-b61b-b8f210df4601" name="Default Changelist" comment="xt">
-      <change afterPath="$PROJECT_DIR$/test/spec.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/continuous-integration.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/continuous-integration.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -122,9 +119,9 @@
     <list>
       <item itemvalue="Attach to Node.js/Chrome.Debug renderer" />
       <item itemvalue="Node.js.Electron" />
+      <item itemvalue="Node.js.application_launch.js" />
       <item itemvalue="npm.build-mac" />
       <item itemvalue="npm.start" />
-      <item itemvalue="Node.js.application_launch.js" />
     </list>
     <recent_temporary>
       <list>
