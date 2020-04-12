@@ -81,13 +81,10 @@ typings/
 # DynamoDB Local files
 .dynamodb/
 
-
 ### WebStorm ignored files
-
-.idea/
+.idea/dictionaries
 
 ### OS specific ignored files
-
 .DS_Store
 release-builds/
 
