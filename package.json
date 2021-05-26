@@ -16,7 +16,7 @@
   "devDependencies": {
     "electron-packager": "^14.1.1",
     "mocha": "^7.1.1",
-    "spectron": "^8.0.0"
+    "spectron": "^15.0.0"
   },
   "scripts": {
     "start": "electron .",
