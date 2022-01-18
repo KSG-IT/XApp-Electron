@@ -14,3 +14,7 @@ This is a version of XApp built using the electron framework.
 - Clone the repo and cd into it
 - Run `npm install`
 - Run `npm start`
+
+
+#### Watcher mode
+Run `npm run watch` during development. This automatically restarts the application on changes
