@@ -389,3 +389,10 @@ function amountInputIsActive() {
 
   return is_active;
 }
+
+
+function handleCloseSoci() {
+  // Log out and terminate session
+
+  
+}
