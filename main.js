@@ -8,16 +8,19 @@ let win;
 function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
-    width: 888,
-    minWidth: 888,
-    height: 606,
-    minHeight: 606,
+    width: 1100,
+    minWidth: 1100,
+    height: 800,
+    minHeight: 800,
     backgroundColor: "#1d1e1f",
+    center: true,
     icon: path.join(__dirname, "assets/icons/png/64x64.png"),
     webPreferences: {
       nodeIntegration: true,
     },
   });
+
+  win.maximize();
 
   // and load the index.html of the app.
   win.loadFile("index.html");
