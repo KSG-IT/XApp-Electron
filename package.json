@@ -1,6 +1,6 @@
 {
   "name": "xapp-electron",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "XApp using the electron framework",
   "main": "main.js",
   "dependencies": {
