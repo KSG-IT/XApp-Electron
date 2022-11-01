@@ -15,7 +15,7 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
         # os: [windows-latest, macos-latest, ubuntu-latest]  # There seems to be some issues with mocha on ubuntu
-        node-version: [12.x]
+        node-version: [15.x]
 
     runs-on: ${{ matrix.os }}
 
@@ -38,10 +38,10 @@ jobs:
             ${{ runner.OS }}-
 
       - name: Install dependencies
-        run: npm ci
+        run: yarn install
 
       - name: Run tests
-        run: npm test
+        run: yarn run test
         env:
           CI: true
 
