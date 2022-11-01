@@ -41,18 +41,15 @@ function readAuthenticationCookie(callback) {
 
 function deleteAuthenticationCookie() {
   cookies.remove(baseUrl, "Authentication", () => {});
-  console.log("HI");
 }
 
 function obtainAuthenticationToken(loginForm) {
-  console.log(loginForm.cardNumber.value);
   requestPromise({
     method: "POST",
     url: "/authentication/obtain-token",
     body: { card_uuid: loginForm.cardNumber.value },
   })
     .then((body) => {
-      console.log(body);
       writeAuthenticationCookie(body.token, (error) => {
         console.log(error);
 
@@ -68,7 +65,6 @@ function obtainAuthenticationToken(loginForm) {
       });
     })
     .catch((error) => {
-      console.log(error);
       if (error.statusCode === 401) {
         document.getElementById("loginOutput").innerText =
           "Sorry! Dette kortnummeret kan ikke brukes til å åpne Soci.";
@@ -164,12 +160,10 @@ function invalidateToken() {
   // document.getElementById("verifyToken").disabled = true;
   // document.getElementById("refreshToken").disabled = true;
   // document.getElementById("invalidateToken").disabled = true;
-  
+
   console.log("sup 2");
 
-  window.setTimeout(() => {
-    currentWindow.loadFile("./index.html");
-  }, 2000);
+  currentWindow.loadFile("./index.html");
 }
 
 function getSociProducts() {
@@ -256,7 +250,6 @@ function chargeBankAccount() {
 
   const formData = {
     bank_account_id: bankAccount.id,
-    api_key: "LIAUHSDILAUHSDLIUHWLIU",
     products: request_data,
   };
 
@@ -282,7 +275,6 @@ function chargeBankAccount() {
           );
         } else if (error.statusCode === 404) {
           // This shouldn't happen since we control the request
-          console.log(error);
         } else if (error.statusCode === 424) {
           showMessage(
             "Kryssingen ble avbrutt: Det er ingen aktiv økt.",
@@ -302,6 +294,23 @@ function chargeBankAccount() {
 
         // Stop spinner
         document.getElementById("spinner").style.display = "none";
+      });
+  });
+}
+
+function terminateSesion() {
+  readAuthenticationCookie((error, token) => {
+    requestPromise({
+      method: "DELETE",
+      url: "/economy/sessions/terminate",
+      headers: { Authorization: "JWT " + token },
+    })
+      .then((res) => {
+        console.log(res);
+        invalidateToken();
+      })
+      .catch((err) => {
+        console.log(err);
       });
   });
 }
