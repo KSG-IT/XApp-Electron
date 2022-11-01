@@ -40,10 +40,10 @@ jobs:
       - name: Install dependencies
         run: yarn install
 
-      - name: Run tests
-        run: yarn run test
-        env:
-          CI: true
+      # - name: Run tests
+      #   run: yarn run test
+      #   env:
+      #     CI: true
 
       - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1

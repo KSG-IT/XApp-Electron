@@ -13,8 +13,8 @@
     "request": "2.88.0",
     "request-promise-native": "1.0.8"
   },
-  "electron": "6.0.4",
   "devDependencies": {
+    "electron": "6.0.4",
     "electron-builder": "^23.6.0",
     "electron-mocha": "^11.0.2",
     "electron-packager": "^14.1.1",
