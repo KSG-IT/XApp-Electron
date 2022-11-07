@@ -44,8 +44,9 @@ function completeLogin() {
    */
   const bankAccount = JSON.parse(sessionStorage.getItem("bankAccount"));
   const balance = bankAccount["balance"];
+  const gold = bankAccount["soci_gold"];
 
-  if (balance < parseInt(localStorage.getItem("lowestPrice"))) {
+  if (balance < parseInt(localStorage.getItem("lowestPrice")) && !gold) {
     showMessage(
       "Du er enten svart, eller har ikke råd til noe på listen",
       errorRed,
@@ -170,13 +171,22 @@ function updateProductCount(card, event) {
   hideNumberInput(card);
 }
 
+function balanceBoolean(currentTotal) {
+  const bankAccount = JSON.parse(sessionStorage.getItem("bankAccount"));
+  const balance = bankAccount["balance"];
+  const gold = bankAccount["soci_gold"];
+
+  return balance > currentTotal || gold;
+}
+
 function checkIfTotalExceedsBalance(currentTotal) {
   /**
    *  Show a user error if the current amount exceeds the user's balance.
    *  The error will be removed once the current amount falls below the balance again.
    */
   const bankAccount = JSON.parse(sessionStorage.getItem("bankAccount"));
-  if (currentTotal > bankAccount["balance"]) {
+
+  if (currentTotal > bankAccount["balance"] && !bankAccount["soci_gold"]) {
     let textField = document.getElementById("totalPriceTitle");
     textField.style.color = errorRed;
     textField.innerText =
@@ -263,7 +273,12 @@ function hideNumberInput(card) {
   const currentTotal = parseInt(
     document.getElementById("totalPrice").innerText.replace(/\s/g, "")
   );
-  if (currentTotal > 0 && !amountInputIsActive()) {
+
+  if (
+    currentTotal > 0 &&
+    !amountInputIsActive() &&
+    balanceBoolean(currentTotal)
+  ) {
     applicationMenu.getMenuItemById("kryss").enabled = true;
     document.getElementById("kryssButton").disabled = false;
   } else {
@@ -390,9 +405,6 @@ function amountInputIsActive() {
   return is_active;
 }
 
-
 function handleCloseSoci() {
   // Log out and terminate session
-
-  
 }

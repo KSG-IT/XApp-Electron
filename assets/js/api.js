@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const baseUrl = "https://ksg-nett.no/api/";
+const baseUrl = "https://ksg-nett.samfundet.no/api/";
 // const baseUrl = "http://localhost:8000/api/";
 
 const requestPromise = require("request-promise-native").defaults({
@@ -69,6 +69,7 @@ function obtainAuthenticationToken(loginForm) {
         document.getElementById("loginOutput").innerText =
           "Sorry! Dette kortnummeret kan ikke brukes til å åpne Soci.";
       } else {
+        console.log(error);
         document.getElementById("loginOutput").innerText =
           "Oisann, noe gikk galt! Vennligst sjekk om maskinen har internettilkobling.";
       }
@@ -221,6 +222,7 @@ function getBalance() {
       json: false,
     })
       .then((account) => {
+        console.log(account);
         sessionStorage.setItem("bankAccount", account);
         completeLogin();
       })
@@ -235,6 +237,10 @@ function getBalance() {
 }
 
 function chargeBankAccount() {
+  const request_data = JSON.parse(sessionStorage.getItem("productOrders"));
+
+  if (!request_data) return
+
   // Disable buttons to prevent multiple API requests
   applicationMenu.getMenuItemById("kryss").enabled = false;
   document.getElementById("kryssButton").disabled = true;
@@ -246,7 +252,6 @@ function chargeBankAccount() {
   document.getElementById("personName").style.display = "none";
 
   const bankAccount = JSON.parse(sessionStorage.getItem("bankAccount"));
-  const request_data = JSON.parse(sessionStorage.getItem("productOrders"));
 
   const formData = {
     bank_account_id: bankAccount.id,
@@ -288,9 +293,9 @@ function chargeBankAccount() {
       .finally(() => {
         // Enable buttons
         applicationMenu.getMenuItemById("kryss").enabled = true;
-        document.getElementById("kryssButton").disabled = false;
+        document.getElementById("kryssButton").disabled = true;
         applicationMenu.getMenuItemById("cancel").enabled = true;
-        document.getElementById("cancelButton").disabled = false;
+        document.getElementById("cancelButton").disabled = true;
 
         // Stop spinner
         document.getElementById("spinner").style.display = "none";
