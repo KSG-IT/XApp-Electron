@@ -7,6 +7,11 @@ const baseUrl = "https://ksg-nett.samfundet.no/api/";
 const requestPromise = require("request-promise-native").defaults({
   baseUrl: baseUrl,
   json: true,
+  agentOptions: {
+    // Due to old library
+    // https://github.com/node-fetch/node-fetch/issues/568#issuecomment-932200523
+    rejectUnauthorized: false,
+  }
 });
 const remote = require("electron").remote;
 
@@ -48,6 +53,7 @@ function obtainAuthenticationToken(loginForm) {
     method: "POST",
     url: "/authentication/obtain-token",
     body: { card_uuid: loginForm.cardNumber.value },
+    rejectUnauthorized: false,
   })
     .then((body) => {
       writeAuthenticationCookie(body.token, (error) => {
