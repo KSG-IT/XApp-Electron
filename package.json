@@ -14,6 +14,7 @@
     "request-promise-native": "1.0.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "electron": "6.0.4",
     "electron-builder": "^23.6.0",
     "electron-packager": "^17.1.0"
@@ -21,7 +22,7 @@
   "scripts": {
     "start": "electron .",
     "watch": "nodemon --exec electron .",
-    "test": "mocha",
+    "test": "playwright test",
     "build-win": "electron-packager . X-App --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"X-App\"",
     "build-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds --darwinDarkModeSupport=true",
     "build-linux": "electron-packager . X-App --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icons/png/1024x1024.png --prune=true --out=release-builds"
