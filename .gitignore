@@ -101,3 +101,6 @@ playwright-report/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+# Vite build of the window
+dist/

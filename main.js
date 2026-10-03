@@ -24,16 +24,14 @@ function createWindow() {
     },
   });
 
-  // The window only shows the app's own pages.
-  win.webContents.on("will-navigate", (event, url) => {
-    if (!url.startsWith("file://")) event.preventDefault();
-  });
+  // The window is one page (dist/index.html) and never navigates.
+  win.webContents.on("will-navigate", (event) => event.preventDefault());
   win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
 
   win.maximize();
 
   // and load the index.html of the app.
-  win.loadFile("index.html");
+  win.loadFile(path.join(__dirname, "dist", "index.html"));
 
   // Open the DevTools.
   // win.webContents.openDevTools();

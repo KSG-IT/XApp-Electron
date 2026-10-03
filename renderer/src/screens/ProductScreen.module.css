@@ -1,0 +1,44 @@
+.layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebar {
+  flex: 0 0 320px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-lg);
+  border-right: 1px solid var(--mantine-color-dark-4);
+}
+
+.person {
+  height: 175px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.products {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--mantine-spacing-lg);
+  transition: opacity 150ms ease;
+}
+
+/* No buyer yet: the products are dimmed and do not react to clicks. */
+.products[data-inactive] {
+  opacity: 0.33;
+  pointer-events: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: var(--mantine-spacing-md);
+}

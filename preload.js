@@ -12,6 +12,10 @@ contextBridge.exposeInMainWorld("xapp", {
   // The "Kryss" menu: Escape cancels and x confirms (main.js).
   setMenuItemEnabled: (id, enabled) =>
     ipcRenderer.send("menu:set-enabled", { id, enabled }),
-  onMenuCommand: (callback) =>
-    ipcRenderer.on("menu:command", (_event, command) => callback(command)),
+  // Returns a function that removes the listener again.
+  onMenuCommand: (callback) => {
+    const listener = (_event, command) => callback(command);
+    ipcRenderer.on("menu:command", listener);
+    return () => ipcRenderer.removeListener("menu:command", listener);
+  },
 });
