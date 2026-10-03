@@ -93,3 +93,11 @@ release-builds/
 ### Playwright
 test-results/
 playwright-report/
+
+# Yarn 4 (no zero-installs)
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

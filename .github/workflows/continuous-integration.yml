@@ -17,11 +17,14 @@ jobs:
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 22.16.0
-          cache: yarn
+          node-version-file: .nvmrc
+
+      # Yarn 4.18.1 from packageManager in package.json
+      - name: Enable corepack
+        run: corepack enable
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
 
       # Ubuntu 24.04 blocks the unprivileged user namespaces that Chromium's
       # sandbox needs. See README.md → "Ubuntu sandbox".

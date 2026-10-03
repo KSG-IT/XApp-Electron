@@ -11,11 +11,14 @@ This is a version of XApp built using the electron framework.
 
 ### Running application
 
-Needs Node.js 22.12 or later (Electron 44).
+Needs Node.js 22.12 or later (Electron 44); `.nvmrc` pins 22.16.0. Yarn 4.18.1 comes from `packageManager` in `package.json` through corepack, the same as ksg-nett-frontend.
 
 - Clone the repo and cd into it
+- Run `corepack enable` (once per machine)
 - Run `yarn install`
 - Run `yarn start`
+
+Electron 44 downloads its binary the first time it starts, not during `yarn install`.
 
 The app talks to `https://ksg-nett.samfundet.no/api/`. To use another backend, set `XAPP_API_URL`:
 
