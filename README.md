@@ -11,10 +11,45 @@ This is a version of XApp built using the electron framework.
 
 ### Running application
 
-- Clone the repo and cd into it
-- Run `npm install`
-- Run `npm start`
+Needs Node.js 22.12 or later (Electron 44).
 
+- Clone the repo and cd into it
+- Run `yarn install`
+- Run `yarn start`
+
+The app talks to `https://ksg-nett.samfundet.no/api/`. To use another backend, set `XAPP_API_URL`:
+
+```bash
+XAPP_API_URL=http://localhost:8000/api/ yarn start
+```
 
 #### Watcher mode
-Run `npm run watch` during development. This automatically restarts the application on changes
+Run `yarn watch` during development. This automatically restarts the application on changes.
+
+### Tests
+
+`yarn test` runs end-to-end tests with Playwright. Each test starts the app against a fake API (`test/fakeApi.js`), so no backend is needed. On a Linux machine without a display, run `xvfb-run yarn test`.
+
+### How it is built
+
+| File | Runs in | Role |
+|------|---------|------|
+| `main.js` | main process | Window, menu (`Escape` cancels, `x` confirms), IPC handlers |
+| `apiClient.js` | main process | All REST calls and the token. TLS certificates are checked. |
+| `preload.js` | bridge | Exposes `window.xapp` to the pages. Nothing else from Node.js or Electron is available there. |
+| `index.html`, `x_view/productView.html`, `assets/js/*.js` | window | Screens and basket logic. The window runs with `sandbox`, `contextIsolation` and no `nodeIntegration`. |
+
+### Ubuntu sandbox
+
+Ubuntu 23.10 and later block the unprivileged user namespaces that Chromium's sandbox needs. If `yarn start` fails with a sandbox error, do one of these:
+
+- Give the bundled sandbox helper its rights (repeat after each `yarn install`):
+
+  ```bash
+  sudo chown root:root node_modules/electron/dist/chrome-sandbox
+  sudo chmod 4755 node_modules/electron/dist/chrome-sandbox
+  ```
+
+- Or allow user namespaces: `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`.
+
+Do not start the app with `--no-sandbox`.
