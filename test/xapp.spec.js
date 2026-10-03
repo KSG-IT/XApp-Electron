@@ -160,26 +160,21 @@ test.describe("buyer", () => {
   });
 });
 
-// Known bug, also on Electron 6 (checked 2026-10-03): right after Soci opens,
-// amountInputIsActive() reads the X-BELOP numpad's inline display as "" and
-// treats the numpad as open, so Kryss stays disabled for the first buyer. The
-// first Avbryt (clearScreen) sets the display and fixes it.
-test.fail("the first buyer after opening Soci can press Kryss", async () => {
+// Right after Soci opens, the X-BELOP numpad has no inline display yet. That
+// must not count as an open numpad (amountInputIsActive in kryssLogic.js).
+test("the first buyer after opening Soci can press Kryss", async () => {
   await launch(api.url);
   await openSoci();
   await scanBuyer("1111", "Ola Nordmann");
   await product("Øl").click();
-  await expect(page.locator("#kryssButton")).toBeEnabled({ timeout: 2000 });
+  await expect(page.locator("#kryssButton")).toBeEnabled();
+  expect(await menuItemEnabled("kryss")).toBe(true);
 });
 
 test.describe("basket", () => {
   test.beforeEach(async () => {
     await launch(api.url);
     await openSoci();
-    // Work around the first-buyer bug above.
-    await scanBuyer("1111", "Ola Nordmann");
-    await page.locator("#cancelButton").click();
-    await expect(page.locator("#personName")).toHaveText("Kryssing avbrutt!");
   });
 
   test("left click adds, right click removes, and Kryss charges", async () => {
