@@ -39,16 +39,18 @@ async function scanCard(card) {
 
 async function openSoci() {
   await scanCard(OPENER_CARD);
-  await expect(page.locator(".grid-item")).toHaveCount(3);
-  await expect(page.locator("#personName")).toHaveText("Les kort...");
+  await expect(page.getByTestId("product-card")).toHaveCount(3);
+  await expect(page.getByTestId("person-name")).toHaveText("Les kort...");
 }
 
 async function scanBuyer(card, name) {
   await scanCard(card);
-  await expect(page.locator("#personName")).toHaveText(name);
+  await expect(page.getByTestId("person-name")).toHaveText(name);
 }
 
-const product = (name) => page.locator(".grid-item", { hasText: name });
+// Product cards by sku_number (test/fakeApi.js).
+const product = (sku) =>
+  page.locator(`[data-testid="product-card"][data-sku="${sku}"]`);
 
 function menuItemEnabled(id) {
   return app.evaluate(
@@ -80,9 +82,7 @@ test.afterEach(async () => {
 test.describe("open Soci", () => {
   test("a valid card opens the product screen", async () => {
     await launch(api.url);
-    await expect(
-      page.locator("text=Vennligst skann kortet ditt")
-    ).toBeVisible();
+    await expect(page.getByText("Vennligst skann kortet ditt")).toBeVisible();
 
     await openSoci();
 
@@ -90,13 +90,13 @@ test.describe("open Soci", () => {
     expect(obtain.body).toEqual({ card_uuid: OPENER_CARD });
     const [products] = api.find("GET", "/api/economy/products");
     expect(products.authorization).toBe(`JWT ${TOKEN}`);
-    await expect(product("Øl")).toContainText("30 kr");
+    await expect(product("OL")).toContainText("30 kr");
   });
 
   test("a card that cannot open Soci shows a message", async () => {
     await launch(api.url);
     await scanCard("9999");
-    await expect(page.locator("#loginOutput")).toHaveText(
+    await expect(page.getByTestId("login-output")).toHaveText(
       "Sorry! Dette kortnummeret kan ikke brukes til å åpne Soci."
     );
   });
@@ -108,7 +108,7 @@ test.describe("open Soci", () => {
 
     await launch(url);
     await scanCard(OPENER_CARD);
-    await expect(page.locator("#loginOutput")).toHaveText(
+    await expect(page.getByTestId("login-output")).toHaveText(
       "Oisann, noe gikk galt! Vennligst sjekk om maskinen har internettilkobling."
     );
   });
@@ -126,25 +126,25 @@ test.describe("buyer", () => {
     const [balance] = api.find("GET", "/api/economy/bank-accounts/balance");
     expect(balance.query).toEqual({ card_uuid: "1111" });
     expect(balance.authorization).toBe(`JWT ${TOKEN}`);
-    await expect(page.locator("#cancelButton")).toBeEnabled();
-    await expect(page.locator("#kryssButton")).toBeDisabled();
+    await expect(page.getByTestId("cancel-button")).toBeEnabled();
+    await expect(page.getByTestId("kryss-button")).toBeDisabled();
     expect(await menuItemEnabled("cancel")).toBe(true);
     expect(await menuItemEnabled("kryss")).toBe(false);
   });
 
   test("an unknown card shows a message", async () => {
     await scanCard("0000");
-    await expect(page.locator("#personName")).toHaveText(
+    await expect(page.getByTestId("person-name")).toHaveText(
       "Fant ikke kortnummeret. Har du lagt inn riktig?"
     );
   });
 
   test("a buyer who cannot afford the cheapest product is refused", async () => {
     await scanCard("2222");
-    await expect(page.locator("#personName")).toHaveText(
+    await expect(page.getByTestId("person-name")).toHaveText(
       "Du er enten svart, eller har ikke råd til noe på listen"
     );
-    await expect(page.locator("#cancelButton")).toBeDisabled();
+    await expect(page.getByTestId("cancel-button")).toBeDisabled();
   });
 
   test("soci gold lets a buyer with a low balance in", async () => {
@@ -153,7 +153,7 @@ test.describe("buyer", () => {
 
   test("a balance under 200 kr shows the name in yellow", async () => {
     await scanBuyer("4444", "Lav Saldo");
-    await expect(page.locator("#personName")).toHaveCSS(
+    await expect(page.getByTestId("person-name")).toHaveCSS(
       "color",
       "rgb(255, 255, 0)"
     );
@@ -166,8 +166,8 @@ test("the first buyer after opening Soci can press Kryss", async () => {
   await launch(api.url);
   await openSoci();
   await scanBuyer("1111", "Ola Nordmann");
-  await product("Øl").click();
-  await expect(page.locator("#kryssButton")).toBeEnabled();
+  await product("OL").click();
+  await expect(page.getByTestId("kryss-button")).toBeEnabled();
   expect(await menuItemEnabled("kryss")).toBe(true);
 });
 
@@ -180,20 +180,24 @@ test.describe("basket", () => {
   test("left click adds, right click removes, and Kryss charges", async () => {
     await scanBuyer("1111", "Ola Nordmann");
 
-    await product("Øl").click();
-    await product("Øl").click();
-    await product("Burger").click();
-    await product("Øl").click({ button: "right" });
-    await product("Øl").click();
+    await product("OL").click();
+    await product("OL").click();
+    await product("BURGER").click();
+    await product("OL").click({ button: "right" });
+    await product("OL").click();
 
-    await expect(product("Øl").locator(".badge")).toHaveText("2");
-    await expect(product("Burger").locator(".badge")).toHaveText("1");
-    await expect(page.locator("#totalPrice")).toHaveText("140 kr");
-    await expect(page.locator("#kryssButton")).toBeEnabled();
+    await expect(product("OL").getByTestId("product-badge")).toHaveText("2");
+    await expect(product("BURGER").getByTestId("product-badge")).toHaveText(
+      "1"
+    );
+    await expect(page.getByTestId("total-price")).toHaveText("140 kr");
+    await expect(page.getByTestId("kryss-button")).toBeEnabled();
     expect(await menuItemEnabled("kryss")).toBe(true);
 
-    await page.locator("#kryssButton").click();
-    await expect(page.locator("#personName")).toHaveText("Kryssing utført!");
+    await page.getByTestId("kryss-button").click();
+    await expect(page.getByTestId("person-name")).toHaveText(
+      "Kryssing utført!"
+    );
 
     const [charge] = api.find("POST", "/api/economy/charge");
     expect(charge.authorization).toBe(`JWT ${TOKEN}`);
@@ -204,71 +208,79 @@ test.describe("basket", () => {
         { sku: "BURGER", order_size: 1 },
       ],
     });
-    await expect(page.locator("#totalPrice")).toHaveText("0 kr");
-    await expect(page.locator("#personName")).toHaveText("Les kort...", {
+    await expect(page.getByTestId("total-price")).toHaveText("0 kr");
+    await expect(page.getByTestId("person-name")).toHaveText("Les kort...", {
       timeout: 5000,
     });
   });
 
   test("the Kryss menu item (x) charges", async () => {
     await scanBuyer("1111", "Ola Nordmann");
-    await product("Burger").click();
+    await product("BURGER").click();
 
     await clickMenuItem("kryss");
-    await expect(page.locator("#personName")).toHaveText("Kryssing utført!");
+    await expect(page.getByTestId("person-name")).toHaveText(
+      "Kryssing utført!"
+    );
     expect(api.find("POST", "/api/economy/charge")).toHaveLength(1);
   });
 
   test("Avbryt clears the basket without a charge", async () => {
     await scanBuyer("1111", "Ola Nordmann");
-    await product("Øl").click();
+    await product("OL").click();
 
-    await page.locator("#cancelButton").click();
-    await expect(page.locator("#personName")).toHaveText("Kryssing avbrutt!");
-    await expect(page.locator("#totalPrice")).toHaveText("0 kr");
-    await expect(product("Øl").locator(".badge")).toBeHidden();
+    await page.getByTestId("cancel-button").click();
+    await expect(page.getByTestId("person-name")).toHaveText(
+      "Kryssing avbrutt!"
+    );
+    await expect(page.getByTestId("total-price")).toHaveText("0 kr");
+    await expect(product("OL").getByTestId("product-badge")).toBeHidden();
     expect(api.find("POST", "/api/economy/charge")).toHaveLength(0);
   });
 
   test("the Cancel menu item (esc) clears the basket", async () => {
     await scanBuyer("1111", "Ola Nordmann");
-    await product("Øl").click();
+    await product("OL").click();
 
     await clickMenuItem("cancel");
-    await expect(page.locator("#personName")).toHaveText("Kryssing avbrutt!");
+    await expect(page.getByTestId("person-name")).toHaveText(
+      "Kryssing avbrutt!"
+    );
     expect(api.find("POST", "/api/economy/charge")).toHaveLength(0);
   });
 
   test("a total above the balance blocks Kryss", async () => {
     await scanBuyer("4444", "Lav Saldo");
 
-    await product("Burger").click();
-    await product("Øl").click();
-    await expect(page.locator("#totalPriceTitle")).toHaveText("- 10 kr");
-    await expect(page.locator("#kryssButton")).toBeDisabled();
+    await product("BURGER").click();
+    await product("OL").click();
+    await expect(page.getByTestId("total-title")).toHaveText("- 10 kr");
+    await expect(page.getByTestId("kryss-button")).toBeDisabled();
     expect(await menuItemEnabled("kryss")).toBe(false);
 
-    await product("Øl").click({ button: "right" });
-    await expect(page.locator("#totalPriceTitle")).toHaveText("Totalsum");
-    await expect(page.locator("#kryssButton")).toBeEnabled();
+    await product("OL").click({ button: "right" });
+    await expect(page.getByTestId("total-title")).toHaveText("Totalsum");
+    await expect(page.getByTestId("kryss-button")).toBeEnabled();
   });
 
   test("X-BELOP charges the amount from the numpad", async () => {
     await scanBuyer("1111", "Ola Nordmann");
-    const card = product("Fritt beløp");
+    const card = product("X-BELOP");
 
     await card.click();
-    await card.locator(".numpad-btn", { hasText: "+10" }).click();
-    await card.locator(".numpad-btn", { hasText: "+5" }).click();
-    await expect(card.locator(".card-subtitle")).toHaveText("15 kr");
-    await expect(page.locator("#kryssButton")).toBeDisabled();
+    await card.getByTestId("numpad-plus-10").click();
+    await card.getByTestId("numpad-plus-5").click();
+    await expect(card.getByTestId("product-price")).toHaveText("15 kr");
+    await expect(page.getByTestId("kryss-button")).toBeDisabled();
 
-    await card.locator(".numpad-btn", { hasText: "OK" }).click();
-    await expect(card.locator(".badge")).toHaveText("Aktiv");
-    await expect(page.locator("#totalPrice")).toHaveText("15 kr");
+    await card.getByTestId("numpad-ok").click();
+    await expect(card.getByTestId("product-badge")).toHaveText("Aktiv");
+    await expect(page.getByTestId("total-price")).toHaveText("15 kr");
 
-    await page.locator("#kryssButton").click();
-    await expect(page.locator("#personName")).toHaveText("Kryssing utført!");
+    await page.getByTestId("kryss-button").click();
+    await expect(page.getByTestId("person-name")).toHaveText(
+      "Kryssing utført!"
+    );
     const [charge] = api.find("POST", "/api/economy/charge");
     expect(charge.body.products).toEqual([{ sku: "X-BELOP", order_size: 15 }]);
   });
@@ -278,8 +290,8 @@ test("Steng soci ends the session and returns to the login screen", async () => 
   await launch(api.url);
   await openSoci();
 
-  await page.locator("#logoutButton").click();
-  await expect(page.locator("text=Vennligst skann kortet ditt")).toBeVisible();
+  await page.getByTestId("logout-button").click();
+  await expect(page.getByText("Vennligst skann kortet ditt")).toBeVisible();
 
   const [terminate] = api.find("DELETE", "/api/economy/sessions/terminate");
   expect(terminate.authorization).toBe(`JWT ${TOKEN}`);
@@ -296,7 +308,7 @@ test.describe("expired token", () => {
   test("a buyer scan returns to the login screen with a message", async () => {
     api.expireToken();
     await scanCard("1111");
-    await expect(page.locator("#loginOutput")).toHaveText(EXPIRED);
+    await expect(page.getByTestId("login-output")).toHaveText(EXPIRED);
 
     // The opener can open Soci again at once.
     await openSoci();
@@ -305,16 +317,16 @@ test.describe("expired token", () => {
 
   test("Kryss returns to the login screen with a message", async () => {
     await scanBuyer("1111", "Ola Nordmann");
-    await product("Øl").click();
+    await product("OL").click();
     api.expireToken();
 
-    await page.locator("#kryssButton").click();
-    await expect(page.locator("#loginOutput")).toHaveText(EXPIRED);
+    await page.getByTestId("kryss-button").click();
+    await expect(page.getByTestId("login-output")).toHaveText(EXPIRED);
   });
 
   test("Steng soci returns to the login screen with a message", async () => {
     api.expireToken();
-    await page.locator("#logoutButton").click();
-    await expect(page.locator("#loginOutput")).toHaveText(EXPIRED);
+    await page.getByTestId("logout-button").click();
+    await expect(page.getByTestId("login-output")).toHaveText(EXPIRED);
   });
 });
