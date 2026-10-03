@@ -2,14 +2,15 @@ const errorRed = "rgb(255, 59, 48)";
 const backgroundBlack = "rgb(29,30,31)";
 
 let textResetFunction;
-let applicationMenu = require("electron").remote.Menu.getApplicationMenu();
 
-require("electron").ipcRenderer.on("cancel", (event, message) => {
-  cancelKryss();
-});
+// The "Kryss" menu in main.js: Escape cancels and x confirms.
+function setMenuItemEnabled(id, enabled) {
+  window.xapp.setMenuItemEnabled(id, enabled);
+}
 
-require("electron").ipcRenderer.on("kryss", (event, message) => {
-  chargeBankAccount();
+window.xapp.onMenuCommand((command) => {
+  if (command === "cancel") cancelKryss();
+  if (command === "kryss") chargeBankAccount();
 });
 
 function showMessage(msg, color = "cyan", timeout = 3000) {
@@ -64,7 +65,7 @@ function completeLogin() {
     personName.innerText = bankAccount["user"];
     clearTimeout(textResetFunction);
 
-    applicationMenu.getMenuItemById("cancel").enabled = true;
+    setMenuItemEnabled("cancel", true);
     document.getElementById("cancelButton").disabled = false;
     [].forEach.call(
       document.getElementsByClassName("sku-number"),
@@ -111,8 +112,8 @@ function clearScreen() {
   textField.innerText = "Totalsum";
   document.getElementById("totalPrice").hidden = false;
 
-  applicationMenu.getMenuItemById("cancel").enabled = false;
-  applicationMenu.getMenuItemById("kryss").enabled = false;
+  setMenuItemEnabled("cancel", false);
+  setMenuItemEnabled("kryss", false);
   document.getElementById("kryssButton").disabled = true;
   document.getElementById("cancelButton").disabled = true;
   document.getElementById("productViewCardNumberInput").value = "";
@@ -194,7 +195,7 @@ function checkIfTotalExceedsBalance(currentTotal) {
 
     document.getElementById("totalPrice").style.color = backgroundBlack;
     document.getElementById("kryssButton").disabled = true;
-    applicationMenu.getMenuItemById("kryss").enabled = false;
+    setMenuItemEnabled("kryss", false);
   } else {
     let textField = document.getElementById("totalPriceTitle");
     textField.style.color = "white";
@@ -204,7 +205,7 @@ function checkIfTotalExceedsBalance(currentTotal) {
 
     if (!amountInputIsActive()) {
       document.getElementById("kryssButton").disabled = currentTotal === 0;
-      applicationMenu.getMenuItemById("kryss").enabled = !(currentTotal === 0);
+      setMenuItemEnabled("kryss", !(currentTotal === 0));
     }
   }
 }
@@ -256,7 +257,7 @@ function showNumberInput(card) {
     card.getElementsByClassName("card-subtitle")[0].innerText = "0 kr";
   }
 
-  applicationMenu.getMenuItemById("kryss").enabled = false;
+  setMenuItemEnabled("kryss", false);
   document.getElementById("kryssButton").disabled = true;
 }
 
@@ -279,10 +280,10 @@ function hideNumberInput(card) {
     !amountInputIsActive() &&
     balanceBoolean(currentTotal)
   ) {
-    applicationMenu.getMenuItemById("kryss").enabled = true;
+    setMenuItemEnabled("kryss", true);
     document.getElementById("kryssButton").disabled = false;
   } else {
-    applicationMenu.getMenuItemById("kryss").enabled = false;
+    setMenuItemEnabled("kryss", false);
     document.getElementById("kryssButton").disabled = true;
   }
 }

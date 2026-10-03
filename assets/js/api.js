@@ -1,216 +1,90 @@
-const fs = require("fs");
-const path = require("path");
-
-const baseUrl = "https://ksg-nett.samfundet.no/api/";
-// const baseUrl = "http://localhost:8000/api/";
-
-const requestPromise = require("request-promise-native").defaults({
-  baseUrl: baseUrl,
-  json: true,
-  agentOptions: {
-    // Due to old library
-    // https://github.com/node-fetch/node-fetch/issues/568#issuecomment-932200523
-    rejectUnauthorized: false,
-  }
-});
-const remote = require("electron").remote;
-
-const currentWindow = remote.getCurrentWindow();
-const cookies = remote.session.defaultSession.cookies;
-
-const handlebars = require("handlebars");
-
-function writeAuthenticationCookie(token, callback) {
-  cookies.set(
-    { url: baseUrl, name: "Authentication", value: token },
-    (error) => {
-      console.error(error);
-      callback(error);
-    }
-  );
-}
-
-function readAuthenticationCookie(callback) {
-  cookies.get({ url: baseUrl, name: "Authentication" }, (error, cookies) => {
-    if (cookies[0] !== undefined) {
-      let token = cookies[0].value;
-      callback(error, token);
-    } else {
-      let output = document.getElementById("output");
-      if (output !== null) {
-        output.innerText = "No valid token could be found!";
-      }
-    }
-  });
-}
-
-function deleteAuthenticationCookie() {
-  cookies.remove(baseUrl, "Authentication", () => {});
-}
+// Page side of the REST calls. window.xapp comes from preload.js. The calls
+// run in the main process (apiClient.js), which also keeps the token.
 
 function obtainAuthenticationToken(loginForm) {
-  requestPromise({
-    method: "POST",
-    url: "/authentication/obtain-token",
-    body: { card_uuid: loginForm.cardNumber.value },
-    rejectUnauthorized: false,
-  })
-    .then((body) => {
-      writeAuthenticationCookie(body.token, (error) => {
-        console.log(error);
-
-        if (error) {
-          console.error(error);
-          document.getElementById("loginOutput").innerText = error.message;
-        } else {
-          // We need the card number for other API calls later on.
-          sessionStorage.setItem("cardNumber", loginForm.cardNumber.value);
-          currentWindow.loadFile("./x_view/productView.html");
-          getBalance();
-        }
-      });
-    })
-    .catch((error) => {
-      if (error.statusCode === 401) {
-        document.getElementById("loginOutput").innerText =
-          "Sorry! Dette kortnummeret kan ikke brukes til å åpne Soci.";
-      } else {
-        console.log(error);
-        document.getElementById("loginOutput").innerText =
-          "Oisann, noe gikk galt! Vennligst sjekk om maskinen har internettilkobling.";
-      }
-      return false;
-    });
-}
-
-function verifyAuthenticationToken() {
-  readAuthenticationCookie((error, token) => {
-    if (error) {
-      console.error(error);
-      document.getElementById("output").innerText = error.message;
+  window.xapp.obtainToken(loginForm.cardNumber.value).then((response) => {
+    if (response.ok) {
+      // index.html has cleared the field by now, so this stores "". The
+      // product screen then reads the next card as the buyer. Storing the
+      // opener's card number here would make it ignore that first scan.
+      sessionStorage.setItem("cardNumber", loginForm.cardNumber.value);
+      window.location.href = "x_view/productView.html";
+    } else if (response.status === 401) {
+      document.getElementById("loginOutput").innerText =
+        "Sorry! Dette kortnummeret kan ikke brukes til å åpne Soci.";
+    } else {
+      console.log(response);
+      document.getElementById("loginOutput").innerText =
+        "Oisann, noe gikk galt! Vennligst sjekk om maskinen har internettilkobling.";
     }
-    requestPromise({
-      method: "POST",
-      url: "/authentication/verify-token",
-      body: { token: token },
-    })
-      .then(() => {
-        document.getElementById("output").innerText = "Token is still valid!";
-      })
-      .catch((error) => {
-        if (error.statusCode === 401) {
-          document.getElementById("output").innerText = "Token has expired!";
-        } else {
-          document.getElementById("output").innerText =
-            "Connection error. Please check your internet connection";
-        }
-      });
   });
 }
 
-function refreshAuthenticationToken(token) {
-  readAuthenticationCookie((error, token) => {
-    if (error) {
-      console.error(error);
-      document.getElementById("output").innerText = error.message;
-    }
-
-    requestPromise({
-      method: "POST",
-      url: "/authentication/refresh-token",
-      body: { token: token },
-    })
-      .then((body) => {
-        writeAuthenticationCookie(body.token, (error) => {
-          if (error) {
-            console.error(error);
-            document.getElementById("output").innerText = error.message;
-          } else {
-            readAuthenticationCookie((error, token) => {
-              if (error) {
-                console.error(error);
-                document.getElementById("output").innerText = error.message;
-              } else {
-                document.getElementById("output").innerHTML =
-                  "Token refreshed successfully!" +
-                  "<br><br>" +
-                  "Your new token is: " +
-                  "<br>" +
-                  token;
-              }
-            });
-          }
-        });
-      })
-      .catch((error) => {
-        if (error.statusCode === 401) {
-          document.getElementById("output").innerText = "Token has expired!";
-        } else {
-          document.getElementById("output").innerText =
-            "Connection error. Please check your internet connection";
-        }
-      });
-  });
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
-function invalidateToken() {
-  console.log("sup");
-  deleteAuthenticationCookie();
-
-  // Can probably be done a bit smoother
-  document.getElementById("productList").innerHTML =
-    "Token was successfully deleted!" +
-    "<br><br>" +
-    "Redirecting back to login page...";
-
-  // document.getElementById("showToken").disabled = true;
-  // document.getElementById("verifyToken").disabled = true;
-  // document.getElementById("refreshToken").disabled = true;
-  // document.getElementById("invalidateToken").disabled = true;
-
-  console.log("sup 2");
-
-  currentWindow.loadFile("./index.html");
+function productCard(product) {
+  const p = Object.fromEntries(
+    ["sku_number", "icon", "price", "name", "description"].map((key) => [
+      key,
+      escapeHtml(product[key] ?? ""),
+    ])
+  );
+  return `
+<div class="grid-item card text-white bg-dark mb-3" onmousedown="updateProductCount(this, event)">
+    <div class="productContent" style="display: block">
+        <p class="sku-number" hidden>${p.sku_number}</p>
+        <div class="card-header top-row">
+            <div>${p.icon}</div>
+            <span class="badge badge-pill badge-primary" style="font-size: 20px;">0</span>
+            <div class="card-subtitle">${p.price} kr</div>
+        </div>
+        <div class="card-body">
+            <div class="productInfo">
+                <h4 class="card-title">${p.name}</h4>
+                <p class="card-text">${p.description}</p>
+            </div>
+            <div class="amountInputTool">
+                <div class="numpad">
+                    <div class="btn btn-outline-light numpad-btn" onmousedown="inputNumber(this, event)">+5</div>
+                    <div class="btn btn-outline-light numpad-btn" onmousedown="inputNumber(this, event)">+10</div>
+                </div>
+                <div class="numpad-controls">
+                    <button class="btn btn-warning numpad-btn" onclick="cancelInput(this)" style="min-width: 80px">Slett</button>
+                    <button class="btn btn-primary numpad-btn" onclick="confirmInput(this)" style="min-width: 80px" disabled>OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>`;
 }
 
 function getSociProducts() {
   localStorage.clear();
-  readAuthenticationCookie((error, token) => {
-    requestPromise({
-      method: "GET",
-      url: "/economy/products",
-      headers: { Authorization: "JWT " + token },
-    })
-      .then((products) => {
-        const template = handlebars.compile(
-          fs
-            .readFileSync(
-              path.join(
-                __dirname,
-                "../assets/templates/productCardTemplate.hbs"
-              )
-            )
-            .toString()
-        );
+  window.xapp.getProducts().then((response) => {
+    if (!response.ok) {
+      console.log(response);
+      return;
+    }
 
-        let lowestPrice = Infinity;
-        products.forEach((product) => {
-          if (product.sku_number === "X-BELOP") product.price = "_____";
-          document.getElementById("productList").innerHTML += template({
-            product: product,
-          });
-          if (typeof product.price == "number" && product.price < lowestPrice)
-            lowestPrice = product.price;
-        });
-        localStorage.setItem("lowestPrice", lowestPrice.toString());
-        setTimeout(() => {
-          document.getElementById("spinner").style.display = "none";
-          document.getElementById("personName").style.display = "block";
-        }, 100);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    let lowestPrice = Infinity;
+    response.data.forEach((product) => {
+      if (product.sku_number === "X-BELOP") product.price = "_____";
+      document.getElementById("productList").innerHTML += productCard(product);
+      if (typeof product.price == "number" && product.price < lowestPrice)
+        lowestPrice = product.price;
+    });
+    localStorage.setItem("lowestPrice", lowestPrice.toString());
+    setTimeout(() => {
+      document.getElementById("spinner").style.display = "none";
+      document.getElementById("personName").style.display = "block";
+    }, 100);
   });
 }
 
@@ -219,38 +93,29 @@ function getBalance() {
   document.getElementById("spinner").style.display = "block";
   document.getElementById("personName").style.display = "none";
 
-  readAuthenticationCookie((error, token) => {
-    requestPromise({
-      method: "GET",
-      url: "/economy/bank-accounts/balance",
-      headers: { Authorization: "JWT " + token },
-      qs: { card_uuid: sessionStorage.getItem("cardNumber") },
-      json: false,
-    })
-      .then((account) => {
-        console.log(account);
-        sessionStorage.setItem("bankAccount", account);
+  window.xapp
+    .getBalance(sessionStorage.getItem("cardNumber"))
+    .then((response) => {
+      if (response.ok) {
+        sessionStorage.setItem("bankAccount", JSON.stringify(response.data));
         completeLogin();
-      })
-      .catch((error) => {
-        if (error.statusCode === 404) {
-          showMessage("Fant ikke kortnummeret. Har du lagt inn riktig?");
-        } else {
-          console.log(error);
-        }
-      });
-  });
+      } else if (response.status === 404) {
+        showMessage("Fant ikke kortnummeret. Har du lagt inn riktig?");
+      } else {
+        console.log(response);
+      }
+    });
 }
 
 function chargeBankAccount() {
   const request_data = JSON.parse(sessionStorage.getItem("productOrders"));
 
-  if (!request_data) return
+  if (!request_data) return;
 
   // Disable buttons to prevent multiple API requests
-  applicationMenu.getMenuItemById("kryss").enabled = false;
+  setMenuItemEnabled("kryss", false);
   document.getElementById("kryssButton").disabled = true;
-  applicationMenu.getMenuItemById("cancel").enabled = false;
+  setMenuItemEnabled("cancel", false);
   document.getElementById("cancelButton").disabled = true;
 
   // Start spinner
@@ -264,64 +129,54 @@ function chargeBankAccount() {
     products: request_data,
   };
 
-  readAuthenticationCookie((error, token) => {
-    requestPromise({
-      method: "POST",
-      url: "/economy/charge",
-      headers: { Authorization: "JWT " + token },
-      body: formData,
-    })
-      .then((body) => {
+  window.xapp
+    .charge(formData)
+    .then((response) => {
+      if (response.ok) {
         confirmKryss();
-      })
-      .catch((error) => {
-        if (error.statusCode === 400) {
-          // This shouldn't happen since we control the request
-          console.log(error);
-        } else if (error.statusCode === 402) {
-          showMessage(
-            "Kryssingen ble avbrutt: Du har ikke råd til alt dette.",
-            errorRed,
-            4000
-          );
-        } else if (error.statusCode === 404) {
-          // This shouldn't happen since we control the request
-        } else if (error.statusCode === 424) {
-          showMessage(
-            "Kryssingen ble avbrutt: Det er ingen aktiv økt.",
-            errorRed,
-            4000
-          );
-        } else {
-          console.log(error);
-        }
-      })
-      .finally(() => {
-        // Enable buttons
-        applicationMenu.getMenuItemById("kryss").enabled = true;
-        document.getElementById("kryssButton").disabled = true;
-        applicationMenu.getMenuItemById("cancel").enabled = true;
-        document.getElementById("cancelButton").disabled = true;
+      } else if (response.status === 400) {
+        // This shouldn't happen since we control the request
+        console.log(response);
+      } else if (response.status === 402) {
+        showMessage(
+          "Kryssingen ble avbrutt: Du har ikke råd til alt dette.",
+          errorRed,
+          4000
+        );
+      } else if (response.status === 404) {
+        // This shouldn't happen since we control the request
+      } else if (response.status === 424) {
+        showMessage(
+          "Kryssingen ble avbrutt: Det er ingen aktiv økt.",
+          errorRed,
+          4000
+        );
+      } else {
+        console.log(response);
+      }
+    })
+    .finally(() => {
+      // Enable buttons
+      setMenuItemEnabled("kryss", true);
+      document.getElementById("kryssButton").disabled = true;
+      setMenuItemEnabled("cancel", true);
+      document.getElementById("cancelButton").disabled = true;
 
-        // Stop spinner
-        document.getElementById("spinner").style.display = "none";
-      });
-  });
+      // Stop spinner
+      document.getElementById("spinner").style.display = "none";
+    });
 }
 
 function terminateSesion() {
-  readAuthenticationCookie((error, token) => {
-    requestPromise({
-      method: "DELETE",
-      url: "/economy/sessions/terminate",
-      headers: { Authorization: "JWT " + token },
-    })
-      .then((res) => {
-        console.log(res);
-        invalidateToken();
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+  window.xapp.terminateSession().then((response) => {
+    if (!response.ok) {
+      console.log(response);
+      return;
+    }
+    document.getElementById("productList").innerHTML =
+      "Token was successfully deleted!" +
+      "<br><br>" +
+      "Redirecting back to login page...";
+    window.location.href = "../index.html";
   });
 }
