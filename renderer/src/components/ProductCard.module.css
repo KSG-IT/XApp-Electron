@@ -1,0 +1,30 @@
+.card {
+  position: relative;
+  min-height: 170px;
+  cursor: pointer;
+  user-select: none;
+  transition: box-shadow 100ms ease;
+}
+
+.card:hover {
+  box-shadow: 0 0 0 2px var(--mantine-color-dark-3);
+}
+
+.card[data-numpad-open] {
+  cursor: default;
+  box-shadow: none;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.75rem;
+}
+
+.badge {
+  position: absolute;
+  top: var(--mantine-spacing-sm);
+  left: 50%;
+  transform: translateX(-50%);
+}
