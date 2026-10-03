@@ -31,11 +31,16 @@ async function request(method, path, { query, body } = {}) {
     } catch {
       data = text;
     }
-    return { ok: response.ok, status: response.status, data };
+    // The sliding token lives 24 hours from opening Soci, and the backend
+    // cannot extend it (refresh_exp is also 1 day). A 401 on a call that sent
+    // the token means it has expired: forget it, and the page shows the login.
+    const expired = response.status === 401 && Boolean(headers.Authorization);
+    if (expired) token = null;
+    return { ok: response.ok, status: response.status, data, expired };
   } catch (error) {
     // No connection, DNS or TLS error. status 0 means "no response".
     console.error(error);
-    return { ok: false, status: 0, data: null };
+    return { ok: false, status: 0, data: null, expired: false };
   }
 }
 
