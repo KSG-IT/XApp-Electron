@@ -20,6 +20,13 @@ function obtainAuthenticationToken(loginForm) {
   });
 }
 
+// The token has expired (apiClient.js). Open Soci again with a card.
+function returnToLoginIfExpired(response) {
+  if (!response.expired) return false;
+  window.location.href = "../index.html#expired";
+  return true;
+}
+
 function escapeHtml(value) {
   return String(value)
     .replace(/&/g, "&amp;")
@@ -68,6 +75,7 @@ function productCard(product) {
 function getSociProducts() {
   localStorage.clear();
   window.xapp.getProducts().then((response) => {
+    if (returnToLoginIfExpired(response)) return;
     if (!response.ok) {
       console.log(response);
       return;
@@ -96,6 +104,7 @@ function getBalance() {
   window.xapp
     .getBalance(sessionStorage.getItem("cardNumber"))
     .then((response) => {
+      if (returnToLoginIfExpired(response)) return;
       if (response.ok) {
         sessionStorage.setItem("bankAccount", JSON.stringify(response.data));
         completeLogin();
@@ -132,6 +141,7 @@ function chargeBankAccount() {
   window.xapp
     .charge(formData)
     .then((response) => {
+      if (returnToLoginIfExpired(response)) return;
       if (response.ok) {
         confirmKryss();
       } else if (response.status === 400) {
@@ -169,6 +179,7 @@ function chargeBankAccount() {
 
 function terminateSesion() {
   window.xapp.terminateSession().then((response) => {
+    if (returnToLoginIfExpired(response)) return;
     if (!response.ok) {
       console.log(response);
       return;

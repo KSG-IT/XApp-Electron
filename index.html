@@ -44,6 +44,12 @@
   </body>
 </html>
 <script type="text/javascript">
+  // productView.html sends us here with #expired when the token has expired.
+  if (window.location.hash === "#expired") {
+    document.getElementById("loginOutput").innerText =
+      "Økten er utløpt. Skann kortet for å åpne Soci igjen.";
+  }
+
   // Takes card reader and appends it to the hidden card number input field.
   document.onkeydown = function (event) {
     if (event.key === "Enter") {
