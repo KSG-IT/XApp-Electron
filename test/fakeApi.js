@@ -38,6 +38,9 @@ const ACCOUNTS = {
 
 function startFakeApi() {
   const requests = [];
+  // expireToken() makes the server treat the issued token as expired, the
+  // same as the backend after SLIDING_TOKEN_LIFETIME (24 hours).
+  let tokenExpired = false;
 
   const server = http.createServer((req, res) => {
     let raw = "";
@@ -57,14 +60,17 @@ function startFakeApi() {
         res.writeHead(status, { "Content-Type": "application/json" });
         res.end(data === undefined ? "" : JSON.stringify(data));
       };
-      const authorized = req.headers.authorization === `JWT ${TOKEN}`;
+      const authorized =
+        req.headers.authorization === `JWT ${TOKEN}` && !tokenExpired;
 
       if (
         req.method === "POST" &&
         url.pathname === "/api/authentication/obtain-token"
       ) {
-        if (body && body.card_uuid === OPENER_CARD)
+        if (body && body.card_uuid === OPENER_CARD) {
+          tokenExpired = false;
           return send(200, { token: TOKEN });
+        }
         return send(401, { detail: "No active account found" });
       }
       if (!authorized) return send(401, { detail: "Invalid token" });
@@ -100,6 +106,9 @@ function startFakeApi() {
       resolve({
         url: `http://127.0.0.1:${port}/api/`,
         requests,
+        expireToken: () => {
+          tokenExpired = true;
+        },
         find: (method, path) =>
           requests.filter((r) => r.method === method && r.path === path),
         close: () => new Promise((done) => server.close(done)),

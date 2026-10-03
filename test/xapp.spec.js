@@ -284,3 +284,37 @@ test("Steng soci ends the session and returns to the login screen", async () => 
   const [terminate] = api.find("DELETE", "/api/economy/sessions/terminate");
   expect(terminate.authorization).toBe(`JWT ${TOKEN}`);
 });
+
+test.describe("expired token", () => {
+  const EXPIRED = "Økten er utløpt. Skann kortet for å åpne Soci igjen.";
+
+  test.beforeEach(async () => {
+    await launch(api.url);
+    await openSoci();
+  });
+
+  test("a buyer scan returns to the login screen with a message", async () => {
+    api.expireToken();
+    await scanCard("1111");
+    await expect(page.locator("#loginOutput")).toHaveText(EXPIRED);
+
+    // The opener can open Soci again at once.
+    await openSoci();
+    await scanBuyer("1111", "Ola Nordmann");
+  });
+
+  test("Kryss returns to the login screen with a message", async () => {
+    await scanBuyer("1111", "Ola Nordmann");
+    await product("Øl").click();
+    api.expireToken();
+
+    await page.locator("#kryssButton").click();
+    await expect(page.locator("#loginOutput")).toHaveText(EXPIRED);
+  });
+
+  test("Steng soci returns to the login screen with a message", async () => {
+    api.expireToken();
+    await page.locator("#logoutButton").click();
+    await expect(page.locator("#loginOutput")).toHaveText(EXPIRED);
+  });
+});
