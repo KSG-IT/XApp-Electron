@@ -396,9 +396,11 @@ function amountInputIsActive() {
     (skuElement) => {
       if (skuElement.innerText === "X-BELOP") {
         let card = skuElement.parentElement.parentElement;
+        // Only showNumberInput() sets "block". A fresh page has "", which
+        // must not count as open, or Kryss stays disabled for the first buyer.
         is_active =
-          card.getElementsByClassName("amountInputTool")[0].style.display !==
-          "none";
+          card.getElementsByClassName("amountInputTool")[0].style.display ===
+          "block";
       }
     }
   );
