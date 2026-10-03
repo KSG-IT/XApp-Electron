@@ -7,6 +7,7 @@ const { startFakeApi, TOKEN, OPENER_CARD } = require("./fakeApi");
 let api;
 let app;
 let page;
+let pageProblems;
 
 async function launch(apiUrl) {
   app = await electron.launch({
@@ -14,6 +15,20 @@ async function launch(apiUrl) {
     env: { ...process.env, XAPP_API_URL: apiUrl },
   });
   page = await app.firstWindow();
+  pageProblems = [];
+  page.on("pageerror", (error) => pageProblems.push(error.message));
+  page.on("console", (message) => {
+    const text = message.text();
+    if (
+      message.type() === "error" ||
+      text.includes("Content Security Policy") ||
+      text.includes("Electron Security Warning")
+    )
+      pageProblems.push(text);
+  });
+  // index.html sets its key handler at the end of the page. Keys typed
+  // before that are lost.
+  await page.waitForLoadState("load");
 }
 
 // The card reader types the card number and then Enter.
@@ -58,6 +73,7 @@ test.beforeEach(async () => {
 
 test.afterEach(async () => {
   if (app) await app.close();
+  expect(pageProblems, "page errors, CSP or security warnings").toEqual([]);
   await api.close();
 });
 
@@ -144,10 +160,26 @@ test.describe("buyer", () => {
   });
 });
 
+// Known bug, also on Electron 6 (checked 2026-10-03): right after Soci opens,
+// amountInputIsActive() reads the X-BELOP numpad's inline display as "" and
+// treats the numpad as open, so Kryss stays disabled for the first buyer. The
+// first Avbryt (clearScreen) sets the display and fixes it.
+test.fail("the first buyer after opening Soci can press Kryss", async () => {
+  await launch(api.url);
+  await openSoci();
+  await scanBuyer("1111", "Ola Nordmann");
+  await product("Øl").click();
+  await expect(page.locator("#kryssButton")).toBeEnabled({ timeout: 2000 });
+});
+
 test.describe("basket", () => {
   test.beforeEach(async () => {
     await launch(api.url);
     await openSoci();
+    // Work around the first-buyer bug above.
+    await scanBuyer("1111", "Ola Nordmann");
+    await page.locator("#cancelButton").click();
+    await expect(page.locator("#personName")).toHaveText("Kryssing avbrutt!");
   });
 
   test("left click adds, right click removes, and Kryss charges", async () => {
