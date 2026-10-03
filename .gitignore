@@ -89,3 +89,7 @@ typings/
 release-builds/
 
 ### Password and secrets
+
+### Playwright
+test-results/
+playwright-report/

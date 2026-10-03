@@ -3,25 +3,24 @@
   "version": "1.0.0",
   "description": "XApp using the electron framework",
   "main": "main.js",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "packageManager": "yarn@1.22.22",
   "dependencies": {
-    "bootstrap": "4.4.1",
-    "handlebars": "4.7.1",
-    "jquery": "3.5.0",
-    "nodemon": "^2.0.15",
-    "popper.js": "1.16.0",
-    "prettier": "^2.0.4",
-    "request": "2.88.0",
-    "request-promise-native": "1.0.8"
+    "bootstrap": "4.4.1"
   },
   "devDependencies": {
-    "electron": "6.0.4",
-    "electron-builder": "^23.6.0",
-    "electron-packager": "^17.1.0"
+    "@electron/packager": "^20.3.0",
+    "@playwright/test": "^1.63.0",
+    "electron": "^44.5.1",
+    "nodemon": "^3.1.14",
+    "prettier": "^2"
   },
   "scripts": {
     "start": "electron .",
     "watch": "nodemon --exec electron .",
-    "test": "mocha",
+    "test": "playwright test",
     "build-win": "electron-packager . X-App --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"X-App\"",
     "build-mac": "electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --out=release-builds --darwinDarkModeSupport=true",
     "build-linux": "electron-packager . X-App --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icons/png/1024x1024.png --prune=true --out=release-builds"

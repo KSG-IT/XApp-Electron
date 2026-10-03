@@ -1,0 +1,73 @@
+// REST calls to ksg-nett run here in the main process, not in the window. The
+// window asks for them over IPC (preload.js). Chromium's network stack checks
+// TLS certificates, and the token never reaches the page.
+const { net } = require("electron");
+
+const API_URL =
+  process.env.XAPP_API_URL || "https://ksg-nett.samfundet.no/api/";
+
+let token = null;
+
+async function request(method, path, { query, body } = {}) {
+  const url = new URL(path, API_URL);
+  for (const [key, value] of Object.entries(query || {})) {
+    url.searchParams.set(key, value);
+  }
+
+  const headers = { Accept: "application/json" };
+  if (token) headers.Authorization = `JWT ${token}`;
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+
+  try {
+    const response = await net.fetch(url.toString(), {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    const text = await response.text();
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      data = text;
+    }
+    return { ok: response.ok, status: response.status, data };
+  } catch (error) {
+    // No connection, DNS or TLS error. status 0 means "no response".
+    console.error(error);
+    return { ok: false, status: 0, data: null };
+  }
+}
+
+async function obtainToken(cardUuid) {
+  token = null;
+  const response = await request("POST", "authentication/obtain-token", {
+    body: { card_uuid: cardUuid },
+  });
+  if (response.ok) token = response.data.token;
+  return { ok: response.ok, status: response.status };
+}
+
+const getProducts = () => request("GET", "economy/products");
+
+const getBalance = (cardUuid) =>
+  request("GET", "economy/bank-accounts/balance", {
+    query: { card_uuid: cardUuid },
+  });
+
+const charge = (payload) =>
+  request("POST", "economy/charge", { body: payload });
+
+async function terminateSession() {
+  const response = await request("DELETE", "economy/sessions/terminate");
+  if (response.ok) token = null;
+  return response;
+}
+
+module.exports = {
+  obtainToken,
+  getProducts,
+  getBalance,
+  charge,
+  terminateSession,
+};

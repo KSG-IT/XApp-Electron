@@ -1,5 +1,6 @@
-const { app, BrowserWindow, Menu, dialog } = require("electron");
-let path = require("path");
+const { app, BrowserWindow, Menu, dialog, ipcMain } = require("electron");
+const path = require("path");
+const api = require("./apiClient");
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -16,9 +17,18 @@ function createWindow() {
     center: true,
     icon: path.join(__dirname, "assets/icons/png/64x64.png"),
     webPreferences: {
-      nodeIntegration: true,
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
     },
   });
+
+  // The window only shows the app's own pages.
+  win.webContents.on("will-navigate", (event, url) => {
+    if (!url.startsWith("file://")) event.preventDefault();
+  });
+  win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
 
   win.maximize();
 
@@ -40,12 +50,31 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on("ready", () => {
-  createWindow();
+app.whenReady().then(() => {
+  registerIpcHandlers();
 
   const menu = buildMenuFromTemplate();
   Menu.setApplicationMenu(menu);
+
+  createWindow();
 });
+
+function registerIpcHandlers() {
+  ipcMain.handle("api:obtain-token", (_event, cardUuid) =>
+    api.obtainToken(String(cardUuid))
+  );
+  ipcMain.handle("api:products", () => api.getProducts());
+  ipcMain.handle("api:balance", (_event, cardUuid) =>
+    api.getBalance(String(cardUuid))
+  );
+  ipcMain.handle("api:charge", (_event, payload) => api.charge(payload));
+  ipcMain.handle("api:terminate", () => api.terminateSession());
+
+  ipcMain.on("menu:set-enabled", (_event, { id, enabled }) => {
+    if (id !== "kryss" && id !== "cancel") return;
+    Menu.getApplicationMenu().getMenuItemById(id).enabled = Boolean(enabled);
+  });
+}
 
 // Quit when all windows are closed.
 app.on("window-all-closed", () => {
@@ -73,8 +102,8 @@ function buildMenuFromTemplate() {
       label: "View",
       submenu: [
         { role: "reload" },
-        { role: "forcereload" },
-        { role: "toggledevtools" },
+        { role: "forceReload" },
+        { role: "toggleDevTools" },
         { type: "separator" },
         { role: "togglefullscreen" },
       ],
@@ -88,7 +117,7 @@ function buildMenuFromTemplate() {
           accelerator: "Escape",
           enabled: false,
           click: () => {
-            win.webContents.send("cancel");
+            win.webContents.send("menu:command", "cancel");
           },
         },
         { type: "separator" },
@@ -98,7 +127,7 @@ function buildMenuFromTemplate() {
           accelerator: "x",
           enabled: false,
           click: () => {
-            win.webContents.send("kryss");
+            win.webContents.send("menu:command", "kryss");
           },
         },
       ],
@@ -122,12 +151,12 @@ function buildMenuFromTemplate() {
 
   if (process.platform === "darwin") {
     menuTemplate.unshift({
-      label: app.getName(),
+      label: app.name,
       submenu: [
         { role: "about" },
         { type: "separator" },
         { role: "hide" },
-        { role: "hideothers" },
+        { role: "hideOthers" },
         { role: "unhide" },
         { type: "separator" },
         { role: "quit" },
