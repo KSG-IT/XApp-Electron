@@ -42,6 +42,38 @@ function startFakeApi() {
   // same as the backend after SLIDING_TOKEN_LIFETIME (24 hours).
   let tokenExpired = false;
 
+  // Each route returns [status, data]. Only obtain-token works without a token.
+  const routes = {
+    "POST /api/authentication/obtain-token": ({ body }) => {
+      if (!body || body.card_uuid !== OPENER_CARD) {
+        return [401, { detail: "No active account found" }];
+      }
+      tokenExpired = false;
+      return [200, { token: TOKEN }];
+    },
+    "GET /api/economy/products": () => [200, PRODUCTS],
+    "GET /api/economy/bank-accounts/balance": ({ url }) => {
+      const account = ACCOUNTS[url.searchParams.get("card_uuid")];
+      return account ? [200, account] : [404, { detail: "Not found" }];
+    },
+    "POST /api/economy/charge": () => [200, {}],
+    "DELETE /api/economy/sessions/terminate": () => [200, {}],
+  };
+  const PUBLIC_ROUTES = ["POST /api/authentication/obtain-token"];
+
+  function respond(req, url, body) {
+    const key = `${req.method} ${url.pathname}`;
+    const route = routes[key];
+    if (!route) return [404, { detail: "Unknown route" }];
+
+    const authorized =
+      req.headers.authorization === `JWT ${TOKEN}` && !tokenExpired;
+    if (!authorized && !PUBLIC_ROUTES.includes(key)) {
+      return [401, { detail: "Invalid token" }];
+    }
+    return route({ url, body });
+  }
+
   const server = http.createServer((req, res) => {
     let raw = "";
     req.on("data", (chunk) => (raw += chunk));
@@ -56,47 +88,9 @@ function startFakeApi() {
         body,
       });
 
-      const send = (status, data) => {
-        res.writeHead(status, { "Content-Type": "application/json" });
-        res.end(data === undefined ? "" : JSON.stringify(data));
-      };
-      const authorized =
-        req.headers.authorization === `JWT ${TOKEN}` && !tokenExpired;
-
-      if (
-        req.method === "POST" &&
-        url.pathname === "/api/authentication/obtain-token"
-      ) {
-        if (body && body.card_uuid === OPENER_CARD) {
-          tokenExpired = false;
-          return send(200, { token: TOKEN });
-        }
-        return send(401, { detail: "No active account found" });
-      }
-      if (!authorized) return send(401, { detail: "Invalid token" });
-
-      if (req.method === "GET" && url.pathname === "/api/economy/products") {
-        return send(200, PRODUCTS);
-      }
-      if (
-        req.method === "GET" &&
-        url.pathname === "/api/economy/bank-accounts/balance"
-      ) {
-        const account = ACCOUNTS[url.searchParams.get("card_uuid")];
-        return account
-          ? send(200, account)
-          : send(404, { detail: "Not found" });
-      }
-      if (req.method === "POST" && url.pathname === "/api/economy/charge") {
-        return send(200, {});
-      }
-      if (
-        req.method === "DELETE" &&
-        url.pathname === "/api/economy/sessions/terminate"
-      ) {
-        return send(200, {});
-      }
-      return send(404, { detail: "Unknown route" });
+      const [status, data] = respond(req, url, body);
+      res.writeHead(status, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(data));
     });
   });
 
