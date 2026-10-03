@@ -16,7 +16,7 @@ Needs Node.js 22.12 or later (Electron 44); `.nvmrc` pins 22.16.0. Yarn 4.18.1 c
 - Clone the repo and cd into it
 - Run `corepack enable` (once per machine)
 - Run `yarn install`
-- Run `yarn start`
+- Run `yarn start` (builds the window with Vite, then starts Electron)
 
 Electron 44 downloads its binary the first time it starts, not during `yarn install`.
 
@@ -26,8 +26,13 @@ The app talks to `https://ksg-nett.samfundet.no/api/`. To use another backend, s
 XAPP_API_URL=http://localhost:8000/api/ yarn start
 ```
 
-#### Watcher mode
-Run `yarn watch` during development. This automatically restarts the application on changes.
+#### Development
+Run these in two terminals. The first rebuilds the window on changes, the second restarts Electron:
+
+```bash
+yarn dev
+yarn watch
+```
 
 ### Tests
 
@@ -35,12 +40,16 @@ Run `yarn watch` during development. This automatically restarts the application
 
 ### How it is built
 
-| File | Runs in | Role |
+The window uses the same stack as ksg-nett-frontend: React 19, Mantine 9, Vite 8, TypeScript and the same Prettier config.
+
+| Path | Runs in | Role |
 |------|---------|------|
-| `main.js` | main process | Window, menu (`Escape` cancels, `x` confirms), IPC handlers |
+| `main.js` | main process | Window, menu (`Escape` cancels, `x` confirms), IPC handlers. Loads `dist/index.html`. |
 | `apiClient.js` | main process | All REST calls and the token. TLS certificates are checked. |
-| `preload.js` | bridge | Exposes `window.xapp` to the pages. Nothing else from Node.js or Electron is available there. |
-| `index.html`, `x_view/productView.html`, `assets/js/*.js` | window | Screens and basket logic. The window runs with `sandbox`, `contextIsolation` and no `nodeIntegration`. |
+| `preload.js` | bridge | Exposes `window.xapp` to the window. Nothing else from Node.js or Electron is available there. |
+| `renderer/` | window | Vite root. `src/screens/` (login, products), `src/components/ProductCard.tsx`, the basket reducer in `src/basket.ts`. Built into `dist/`. |
+
+The window runs with `sandbox`, `contextIsolation` and no `nodeIntegration`, and cannot navigate.
 
 ### Ubuntu sandbox
 
