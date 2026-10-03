@@ -35,7 +35,7 @@
     <div class="row no-gutters">
       <div class="sideBar">
         <div id="person-spinner-div" style="height: 175px;">
-          <p id="personName" style="display: none;">Les kort...</p>
+          <p id="personName" data-testid="person-name" style="display: none;">Les kort...</p>
           <div
             id="spinner"
             class="justify-content-center"
@@ -53,12 +53,13 @@
         <div style="padding-top: 20px;"></div>
         <hr style="border: 1px solid white;" />
         <div style="padding-top: 20px;"></div>
-        <h1 id="totalPriceTitle">Totalsum</h1>
-        <p id="totalPrice">0 kr</p>
+        <h1 id="totalPriceTitle" data-testid="total-title">Totalsum</h1>
+        <p id="totalPrice" data-testid="total-price">0 kr</p>
         <br /><br />
         <button
           class="btn btn-lg btn-success btn-block"
           id="kryssButton"
+          data-testid="kryss-button"
           type="submit"
           disabled
           onclick="chargeBankAccount()"
@@ -69,6 +70,7 @@
         <button
           class="btn btn-lg btn-danger btn-block"
           id="cancelButton"
+          data-testid="cancel-button"
           type="submit"
           disabled
           onclick="cancelKryss()"
@@ -79,6 +81,7 @@
         <button
         class="btn btn-lg btn-danger btn-block"
         id="logoutButton"
+        data-testid="logout-button"
         type="submit"
         onclick="terminateSesion()"
       >

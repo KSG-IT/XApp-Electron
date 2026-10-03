@@ -44,13 +44,13 @@ function productCard(product) {
     ])
   );
   return `
-<div class="grid-item card text-white bg-dark mb-3" onmousedown="updateProductCount(this, event)">
+<div class="grid-item card text-white bg-dark mb-3" data-testid="product-card" data-sku="${p.sku_number}" onmousedown="updateProductCount(this, event)">
     <div class="productContent" style="display: block">
         <p class="sku-number" hidden>${p.sku_number}</p>
         <div class="card-header top-row">
             <div>${p.icon}</div>
-            <span class="badge badge-pill badge-primary" style="font-size: 20px;">0</span>
-            <div class="card-subtitle">${p.price} kr</div>
+            <span class="badge badge-pill badge-primary" data-testid="product-badge" style="font-size: 20px;">0</span>
+            <div class="card-subtitle" data-testid="product-price">${p.price} kr</div>
         </div>
         <div class="card-body">
             <div class="productInfo">
@@ -59,12 +59,12 @@ function productCard(product) {
             </div>
             <div class="amountInputTool">
                 <div class="numpad">
-                    <div class="btn btn-outline-light numpad-btn" onmousedown="inputNumber(this, event)">+5</div>
-                    <div class="btn btn-outline-light numpad-btn" onmousedown="inputNumber(this, event)">+10</div>
+                    <div class="btn btn-outline-light numpad-btn" data-testid="numpad-plus-5" onmousedown="inputNumber(this, event)">+5</div>
+                    <div class="btn btn-outline-light numpad-btn" data-testid="numpad-plus-10" onmousedown="inputNumber(this, event)">+10</div>
                 </div>
                 <div class="numpad-controls">
-                    <button class="btn btn-warning numpad-btn" onclick="cancelInput(this)" style="min-width: 80px">Slett</button>
-                    <button class="btn btn-primary numpad-btn" onclick="confirmInput(this)" style="min-width: 80px" disabled>OK</button>
+                    <button class="btn btn-warning numpad-btn" data-testid="numpad-delete" onclick="cancelInput(this)" style="min-width: 80px">Slett</button>
+                    <button class="btn btn-primary numpad-btn" data-testid="numpad-ok" onclick="confirmInput(this)" style="min-width: 80px" disabled>OK</button>
                 </div>
             </div>
         </div>
