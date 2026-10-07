@@ -1,0 +1,14 @@
+# A user unit: install it in ~/.config/systemd/user/ of the desktop user.
+[Unit]
+Description=X-App, the Soci till
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+EnvironmentFile=-/etc/xapp/xapp.env
+ExecStart=/opt/xapp/current/X-App
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=graphical-session.target
