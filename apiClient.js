@@ -67,7 +67,11 @@ async function terminateSession() {
   return response
 }
 
+// True while Soci is open on this till.
+const hasToken = () => token !== null
+
 module.exports = {
+  hasToken,
   obtainToken,
   getProducts,
   getBalance,
