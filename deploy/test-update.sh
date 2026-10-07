@@ -33,7 +33,10 @@ make_release() {
   printf '#!/bin/sh\necho %s\n' "$tag" >"$pkg/X-App-linux-x64/X-App"
   chmod +x "$pkg/X-App-linux-x64/X-App"
   touch "$pkg/X-App-linux-x64/chrome-sandbox"
-  tar -czf "$API/download/$asset" -C "$pkg" X-App-linux-x64
+  # Like a tarball from CI: another owner (uid 1001 is the runner user) and a
+  # folder that only that owner can open.
+  chmod 700 "$pkg/X-App-linux-x64"
+  tar -czf "$API/download/$asset" -C "$pkg" --owner=1001 --group=1001 X-App-linux-x64
   (cd "$API/download" && sha256sum "$asset" >"$asset.sha256")
   if [[ "${2:-}" == "bad" ]]; then
     echo "0000000000000000000000000000000000000000000000000000000000000000  $asset" >"$API/download/$asset.sha256"
@@ -61,6 +64,9 @@ publish_latest v2026.9.1
 "$SCRIPT" update
 [[ "$(active)" == v2026.9.1 ]] || fail "v2026.9.1 is not active"
 [[ "$(stat -c '%U %a' "$XAPP_ROOT/current/chrome-sandbox")" == "root 4755" ]] || fail "chrome-sandbox is not root 4755"
+[[ -z "$(find "$XAPP_ROOT/releases/" ! -user root -o ! -group root)" ]] || fail "a file in the release is not owned by root"
+[[ -z "$(find "$XAPP_ROOT/releases/" -perm /022)" ]] || fail "a file in the release is writable by others"
+[[ "$(stat -c '%a' "$XAPP_ROOT/current/")" == "755" ]] || fail "the release folder is not 755"
 
 echo "--- same release again does nothing"
 [[ "$("$SCRIPT" check)" == "none" ]] || fail "check offered the active release"
