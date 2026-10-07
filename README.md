@@ -65,3 +65,57 @@ Ubuntu 23.10 and later block the unprivileged user namespaces that Chromium's sa
 - Or allow user namespaces: `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`.
 
 Do not start the app with `--no-sandbox`.
+
+### Release
+
+1. Set `version` in `package.json`, for example `1.2.0`, and merge to `master`.
+2. Tag the merge commit: `git tag v1.2.0 && git push origin v1.2.0`.
+
+CI runs the tests and builds the Linux package. Then it publishes a GitHub Release with `xapp-linux-x64-v1.2.0.tar.gz` and its `.sha256`. CI fails if the tag does not match `package.json`.
+
+Mark a release as a pre-release to keep it from the till. `xapp-update.sh` installs only the latest full release.
+
+### Install and update on the till
+
+The till installs releases with `deploy/xapp-update.sh`. A systemd timer runs it every day at 06:00, when Soci is closed.
+
+| Path | What |
+|------|------|
+| `/opt/xapp/releases/<tag>/` | One unpacked release. The newest 3 are kept. |
+| `/opt/xapp/current` | Symlink to the active release. |
+| `/opt/xapp/skip-tag` | A release that the update must not install. `rollback` writes it. |
+| `/etc/xapp/update.env` | Config for `xapp-update.sh` (`deploy/update.env.example`). |
+| `/etc/xapp/xapp.env` | Optional environment for the app, for example `XAPP_API_URL`. |
+
+Set it up once, from a clone of this repo on the till:
+
+```bash
+sudo install -D -m 755 deploy/xapp-update.sh /opt/xapp/bin/xapp-update.sh
+sudo install -D -m 644 deploy/update.env.example /etc/xapp/update.env
+sudoedit /etc/xapp/update.env    # set XAPP_USER to the desktop user
+sudo install -m 644 deploy/systemd/xapp-update.service deploy/systemd/xapp-update.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now xapp-update.timer
+sudo /opt/xapp/bin/xapp-update.sh update    # first install
+```
+
+Then, as the desktop user, start the app as a user service. It restarts if it crashes:
+
+```bash
+install -D -m 644 deploy/systemd/xapp.service ~/.config/systemd/user/xapp.service
+systemctl --user daemon-reload
+systemctl --user enable --now xapp.service
+```
+
+Day to day, over SSH:
+
+```bash
+sudo /opt/xapp/bin/xapp-update.sh status      # active and installed releases
+sudo /opt/xapp/bin/xapp-update.sh update      # install the latest release now
+sudo /opt/xapp/bin/xapp-update.sh rollback    # back to the previous release; skip the current one
+journalctl -u xapp-update.service             # update log
+```
+
+After a `rollback`, the update skips the bad release until a newer one is published.
+
+`xapp-update.sh` does not update itself. Install it again from the repo when it changes.

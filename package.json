@@ -30,9 +30,9 @@
     "watch": "nodemon --watch dist --watch main.js --watch preload.js --watch apiClient.js --exec electron .",
     "test": "yarn build && playwright test",
     "format": "prettier --write renderer test",
-    "build-win": "yarn build && electron-packager . X-App --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --ignore=^/renderer --ignore=^/test --ignore=^/.github --ignore=^/.idea --ignore=^/.yarn --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"X-App\"",
-    "build-mac": "yarn build && electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --ignore=^/renderer --ignore=^/test --ignore=^/.github --ignore=^/.idea --ignore=^/.yarn --out=release-builds --darwinDarkModeSupport=true",
-    "build-linux": "yarn build && electron-packager . X-App --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icons/png/1024x1024.png --prune=true --ignore=^/renderer --ignore=^/test --ignore=^/.github --ignore=^/.idea --ignore=^/.yarn --out=release-builds"
+    "build-win": "yarn build && electron-packager . X-App --overwrite --asar=true --platform=win32 --arch=ia32 --icon=assets/icons/win/icon.ico --prune=true --ignore=^/renderer --ignore=^/test --ignore=^/.github --ignore=^/.idea --ignore=^/.yarn --ignore=^/deploy --out=release-builds --version-string.CompanyName=CE --version-string.FileDescription=CE --version-string.ProductName=\"X-App\"",
+    "build-mac": "yarn build && electron-packager . --overwrite --platform=darwin --arch=x64 --icon=assets/icons/mac/icon.icns --prune=true --ignore=^/renderer --ignore=^/test --ignore=^/.github --ignore=^/.idea --ignore=^/.yarn --ignore=^/deploy --out=release-builds --darwinDarkModeSupport=true",
+    "build-linux": "yarn build && electron-packager . X-App --overwrite --asar=true --platform=linux --arch=x64 --icon=assets/icons/png/1024x1024.png --prune=true --ignore=^/renderer --ignore=^/test --ignore=^/.github --ignore=^/.idea --ignore=^/.yarn --ignore=^/deploy --out=release-builds"
   },
   "repository": {
     "type": "git",

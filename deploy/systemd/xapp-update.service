@@ -1,0 +1,8 @@
+[Unit]
+Description=Install the latest X-App release
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/xapp/bin/xapp-update.sh update
