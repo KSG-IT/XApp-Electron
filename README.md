@@ -76,6 +76,8 @@ A release is a tag on `master`, the same as in ksg-nett and ksg-nett-frontend. N
 
 Tags are versions in the form `v<year>.<month>.<number>`, for example `v2026.10.4`. CI refuses a tag that is not on `master`. It runs the tests, sets the app version from the tag and builds the Linux package. Then it publishes a GitHub Release with `xapp-linux-x64-v2026.10.4.tar.gz` and its `.sha256`.
 
+Each merge to `master` also uploads a dev build, `xapp-linux-x64-dev-<sha>.tar.gz`, to its GitHub Actions run. It is kept for 14 days. Download it from the run page to try it on another machine, for example with `XAPP_API_URL` set to the dev backend. The till never installs a dev build.
+
 Mark a release as a pre-release to keep it from the till. `xapp-update.sh` installs only the latest full release.
 
 ### Install and update on the till

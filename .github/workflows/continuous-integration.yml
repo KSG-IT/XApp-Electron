@@ -62,12 +62,23 @@ jobs:
       - name: Pack the Linux release
         run: |
           tag="${GITHUB_REF_NAME}"
-          if [[ "$GITHUB_REF" != refs/tags/v* ]]; then tag="v0.0.0-ci"; fi
+          if [[ "$GITHUB_REF" != refs/tags/v* ]]; then tag="dev-${GITHUB_SHA::7}"; fi
           asset="xapp-linux-x64-$tag.tar.gz"
           tar -czf "$asset" -C release-builds X-App-linux-x64
           tar -tzf "$asset" X-App-linux-x64/X-App X-App-linux-x64/chrome-sandbox
           sha256sum "$asset" > "$asset.sha256"
           echo "ASSET=$asset" >> "$GITHUB_ENV"
+
+      # A dev build to download from the run page. The till never installs it.
+      - name: Upload the dev build
+        if: github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ASSET }}
+          path: |
+            ${{ env.ASSET }}
+            ${{ env.ASSET }}.sha256
+          retention-days: 14
 
       - name: Publish the GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
