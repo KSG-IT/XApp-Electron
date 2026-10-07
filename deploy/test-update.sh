@@ -96,8 +96,11 @@ if "$SCRIPT" update; then fail "update accepted a wrong checksum"; fi
 [[ ! -e "$XAPP_ROOT/releases/v2026.10.2" ]] || fail "wrong checksum left a release"
 
 echo "--- check and status run without root"
-nobody_run() { setpriv --reuid=nobody --regid=nogroup --clear-groups env XAPP_CONFIG="$XAPP_CONFIG" XAPP_ROOT="$XAPP_ROOT" XAPP_API_BASE="$XAPP_API_BASE" "$SCRIPT" "$@"; }
+# A copy outside the checkout, like /opt/xapp/bin on the till: a home folder is
+# closed to other users.
+install -m 755 "$SCRIPT" "$WORK/xapp-update.sh"
 chmod 755 "$WORK"
+nobody_run() { setpriv --reuid=nobody --regid=nogroup --clear-groups env XAPP_CONFIG="$XAPP_CONFIG" XAPP_ROOT="$XAPP_ROOT" XAPP_API_BASE="$XAPP_API_BASE" "$WORK/xapp-update.sh" "$@"; }
 [[ "$(nobody_run check)" == "available v2026.10.2" ]] || fail "check failed without root"
 if nobody_run update 2>/dev/null; then fail "update ran without root"; fi
 
