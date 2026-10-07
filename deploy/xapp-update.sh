@@ -106,13 +106,18 @@ install_release() {
   (cd "$tmp" && sha256sum --check --quiet "$asset.sha256") || die "checksum of $asset does not match"
 
   mkdir -p "$tmp/unpacked"
-  tar -xzf "$tmp/$asset" -C "$tmp/unpacked"
+  # The tarball has the owner of the CI runner (uid 1001), which can be a real
+  # user on the till. Root owns the release, and the till user can only read
+  # and run it.
+  tar -xzf "$tmp/$asset" -C "$tmp/unpacked" --no-same-owner
   local app_dir="$tmp/unpacked/X-App-linux-x64"
   [[ -x "$app_dir/X-App" ]] || die "$asset has no X-App-linux-x64/X-App"
+  chown -R root:root "$app_dir"
+  chmod -R u+rwX,go+rX,go-w "$app_dir"
 
   # Ubuntu 23.10+ blocks the user namespaces that Chromium's sandbox needs.
-  # The SUID helper is the fix (README.md → "Ubuntu sandbox").
-  chown root:root "$app_dir/chrome-sandbox"
+  # The SUID helper is the fix (README.md → "Ubuntu sandbox"). After chown,
+  # because chown clears the SUID bit.
   chmod 4755 "$app_dir/chrome-sandbox"
 
   rm -rf "${RELEASES:?}/$tag"
