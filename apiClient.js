@@ -1,11 +1,16 @@
 // REST calls to ksg-nett run here in the main process, not in the window. The
 // window asks for them over IPC (preload.js). Chromium's network stack checks
 // TLS certificates, and the token never reaches the page.
-const { net } = require('electron')
+const { app, net } = require('electron')
+const os = require('os')
 
 const API_URL = process.env.XAPP_API_URL || 'https://ksg-nett.samfundet.no/api/'
 
 let token = null
+
+// The backend stores this on the SociSession that the till opens, so the
+// admin shows which till and which release opened Soci.
+const USER_AGENT = `X-App/${app.getVersion()} (${os.hostname()})`
 
 async function request(method, path, { query, body } = {}) {
   const url = new URL(path, API_URL)
@@ -13,7 +18,7 @@ async function request(method, path, { query, body } = {}) {
     url.searchParams.set(key, value)
   }
 
-  const headers = { Accept: 'application/json' }
+  const headers = { Accept: 'application/json', 'User-Agent': USER_AGENT }
   if (token) headers.Authorization = `JWT ${token}`
   if (body !== undefined) headers['Content-Type'] = 'application/json'
 

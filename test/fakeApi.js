@@ -85,6 +85,7 @@ function startFakeApi() {
         path: url.pathname,
         query: Object.fromEntries(url.searchParams),
         authorization: req.headers.authorization,
+        userAgent: req.headers['user-agent'],
         body,
       })
 

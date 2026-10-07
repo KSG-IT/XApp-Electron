@@ -90,6 +90,12 @@ test.describe('open Soci', () => {
 
     const [obtain] = api.find('POST', '/api/authentication/obtain-token')
     expect(obtain.body).toEqual({ card_uuid: OPENER_CARD })
+    // The backend stores it on the new SociSession.
+    expect(obtain.userAgent).toBe(
+      `X-App/${
+        require('../package.json').version
+      } (${require('os').hostname()})`
+    )
     const [products] = api.find('GET', '/api/economy/products')
     expect(products.authorization).toBe(`JWT ${TOKEN}`)
     await expect(product('OL')).toContainText('30 kr')
