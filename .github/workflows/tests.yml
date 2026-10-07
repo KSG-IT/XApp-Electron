@@ -6,13 +6,15 @@ on: [workflow_call]
 jobs:
   e2e:
     name: End-to-end tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Use Node.js from .nvmrc
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
+          # Yarn comes from corepack later. No automatic cache from packageManager.
+          package-manager-cache: false
           node-version-file: .nvmrc
 
       # Yarn 4 comes from packageManager in package.json.
@@ -35,9 +37,9 @@ jobs:
 
   update-script:
     name: Update script test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Installs fake releases from a fake GitHub API on localhost. Needs root,
       # like on the till, to set the owner of chrome-sandbox.
