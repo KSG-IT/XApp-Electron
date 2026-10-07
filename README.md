@@ -1,7 +1,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/ksg-it/xapp-electron/badge)](https://www.codefactor.io/repository/github/ksg-it/xapp-electron)
 [![Known Vulnerabilities](https://snyk.io/test/github/KSG-IT/XApp-Electron/badge.svg?targetFile=package.json)](https://snyk.io/test/github/KSG-IT/XApp-Electron?targetFile=package.json)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
-[![Continuous Integration](https://github.com/KSG-IT/XApp-Electron/workflows/Electron%20CI/badge.svg)](https://github.com/KSG-IT/XApp-Electron/actions?query=branch%3Amaster)
+[![Dev build](https://github.com/KSG-IT/XApp-Electron/actions/workflows/dev_build.yml/badge.svg)](https://github.com/KSG-IT/XApp-Electron/actions/workflows/dev_build.yml)
 
 # XApp Electron
 
@@ -37,6 +37,16 @@ yarn watch
 ### Tests
 
 `yarn test` runs end-to-end tests with Playwright. Each test starts the app against a fake API (`test/fakeApi.js`), so no backend is needed. On a Linux machine without a display, run `xvfb-run yarn test`.
+
+### GitHub Actions
+
+| Workflow | Runs on | Does |
+|----------|---------|------|
+| Test PR (`test_on_pr.yml`) | a pull request to `master` | Tests, then Package. The PR build is on the run page for 7 days. |
+| Dev build (`dev_build.yml`) | a merge to `master` | Tests, then Package. The dev build is on the run page for 14 days. |
+| Release (`release.yml`) | a `v*` tag | Checks that the tag is on `master`. Then Tests, Package, and a GitHub Release with the package. |
+| Tests (`tests.yml`) | reused by the three above | The Playwright tests, and `deploy/test-update.sh` for the update script. |
+| Package (`package.yml`) | reused by the three above | `yarn build-linux`, then `xapp-linux-x64-<version>.tar.gz` and its `.sha256` as a workflow artifact. |
 
 ### How it is built
 
@@ -74,9 +84,9 @@ A release is a tag on `master`, the same as in ksg-nett and ksg-nett-frontend. N
 2. `yarn release:preview` prints the next tag. It changes nothing.
 3. `yarn release` lists the merged PRs since the last tag. Type the tag name to confirm. It creates the tag and pushes it.
 
-Tags are versions in the form `v<year>.<month>.<number>`, for example `v2026.10.4`. CI refuses a tag that is not on `master`. It runs the tests, sets the app version from the tag and builds the Linux package. Then it publishes a GitHub Release with `xapp-linux-x64-v2026.10.4.tar.gz` and its `.sha256`.
+Tags are versions in the form `v<year>.<month>.<number>`, for example `v2026.10.4`. The Release workflow refuses a tag that is not on `master`. It runs the tests, sets the app version from the tag and builds the Linux package. Then it publishes a GitHub Release with `xapp-linux-x64-v2026.10.4.tar.gz` and its `.sha256`.
 
-Each merge to `master` also uploads a dev build, `xapp-linux-x64-dev-<sha>.tar.gz`, to its GitHub Actions run. It is kept for 14 days. Download it from the run page to try it on another machine, for example with `XAPP_API_URL` set to the dev backend. The till never installs a dev build.
+Each merge to `master` also makes a dev build, `xapp-linux-x64-dev-<short sha>.tar.gz`, on the run page of the Dev build workflow. It is kept for 14 days. Download it from the run page to try it on another machine, for example with `XAPP_API_URL` set to the dev backend. The till never installs a dev build.
 
 Mark a release as a pre-release to keep it from the till. `xapp-update.sh` installs only the latest full release.
 

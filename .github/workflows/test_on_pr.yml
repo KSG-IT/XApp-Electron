@@ -1,0 +1,17 @@
+name: Test PR
+
+on:
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    uses: ./.github/workflows/tests.yml
+
+  # Checks that the app still packages. The build is on the run page for 7 days.
+  package:
+    needs: [test]
+    uses: ./.github/workflows/package.yml
+    with:
+      version: dev
+      retention-days: 7

@@ -1,0 +1,74 @@
+name: Package
+
+# Reused by test_on_pr.yml, dev_build.yml and release.yml. Builds the Linux
+# package and uploads it as a workflow artifact with the same name as the file:
+# xapp-linux-x64-<version>.tar.gz, with its .sha256.
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: "A tag such as v2026.10.3 for a release (also sets the app version), or dev for a dev build (becomes dev-<short sha>)"
+        required: true
+        type: string
+      retention-days:
+        required: true
+        type: number
+    outputs:
+      asset:
+        description: "The file name of the tarball"
+        value: ${{ jobs.linux.outputs.asset }}
+
+jobs:
+  linux:
+    name: Package for Linux
+    runs-on: ubuntu-latest
+    outputs:
+      asset: ${{ steps.pack.outputs.asset }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Name the version
+        run: |
+          version="${{ inputs.version }}"
+          if [ "$version" = "dev" ]; then version="dev-${GITHUB_SHA::7}"; fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Use Node.js from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # The packaged app takes its version from package.json. A release sets it
+      # from the tag (v2026.10.3 -> 2026.10.3), so nothing is committed.
+      - name: Set the app version from the tag
+        if: startsWith(inputs.version, 'v')
+        run: npm pkg set version="${VERSION#v}"
+
+      - name: Build with electron-packager
+        run: yarn build-linux
+
+      # deploy/xapp-update.sh expects X-App-linux-x64/X-App and chrome-sandbox.
+      - name: Pack the tarball and its checksum
+        id: pack
+        run: |
+          asset="xapp-linux-x64-$VERSION.tar.gz"
+          tar -czf "$asset" -C release-builds X-App-linux-x64
+          tar -tzf "$asset" X-App-linux-x64/X-App X-App-linux-x64/chrome-sandbox
+          sha256sum "$asset" > "$asset.sha256"
+          echo "asset=$asset" >> "$GITHUB_OUTPUT"
+
+      - name: Upload the tarball as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.pack.outputs.asset }}
+          path: |
+            ${{ steps.pack.outputs.asset }}
+            ${{ steps.pack.outputs.asset }}.sha256
+          retention-days: ${{ inputs.retention-days }}
+          if-no-files-found: error

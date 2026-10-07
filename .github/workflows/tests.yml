@@ -1,0 +1,45 @@
+name: Tests
+
+# Reused by test_on_pr.yml, dev_build.yml and release.yml.
+on: [workflow_call]
+
+jobs:
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js from .nvmrc
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      # Yarn 4 comes from packageManager in package.json.
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      # Ubuntu 24.04 blocks the unprivileged user namespaces that Chromium's
+      # sandbox needs. See README.md → "Ubuntu sandbox".
+      - name: Allow Chromium's sandbox
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      # Playwright starts the app against test/fakeApi.js. xvfb gives it a display.
+      - name: Run the Playwright tests
+        run: xvfb-run --auto-servernum yarn test
+        env:
+          CI: true
+
+  update-script:
+    name: Update script test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Installs fake releases from a fake GitHub API on localhost. Needs root,
+      # like on the till, to set the owner of chrome-sandbox.
+      - name: Test deploy/xapp-update.sh
+        run: sudo deploy/test-update.sh
