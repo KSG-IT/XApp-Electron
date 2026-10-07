@@ -45,5 +45,8 @@
   "bugs": {
     "url": "https://github.com/KSG-IT/XApp-Electron/issues"
   },
-  "homepage": "https://github.com/KSG-IT/XApp-Electron#readme"
+  "homepage": "https://github.com/KSG-IT/XApp-Electron#readme",
+  "dependencies": {
+    "@sentry/electron": "^8.1.0"
+  }
 }

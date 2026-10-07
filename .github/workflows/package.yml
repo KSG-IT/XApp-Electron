@@ -44,11 +44,16 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      # The packaged app takes its version from package.json. A release sets it
-      # from the tag (v2026.10.3 -> 2026.10.3), so nothing is committed.
-      - name: Set the app version from the tag
-        if: startsWith(inputs.version, 'v')
-        run: npm pkg set version="${VERSION#v}"
+      # The packaged app takes its version from package.json, and Sentry reports
+      # it (sentry.js). A release sets it from the tag (v2026.10.3 -> 2026.10.3),
+      # a dev build to 0.0.0-dev.<sha>. Nothing is committed.
+      - name: Set the app version
+        run: |
+          if [[ "$VERSION" == v* ]]; then
+            npm pkg set version="${VERSION#v}"
+          else
+            npm pkg set version="0.0.0-dev.${GITHUB_SHA::7}"
+          fi
 
       - name: Build with electron-packager
         run: yarn build-linux

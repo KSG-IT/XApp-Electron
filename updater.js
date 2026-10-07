@@ -6,6 +6,7 @@
 // (/opt/xapp/releases/<tag>/X-App), or when XAPP_UPDATER names a script (tests).
 // `yarn start` from a clone never updates.
 const { app } = require('electron')
+const Sentry = require('@sentry/electron/main')
 const { execFile } = require('child_process')
 const fs = require('fs')
 const path = require('path')
@@ -70,6 +71,9 @@ async function check() {
 async function install() {
   const [file, args] = UPDATE_COMMAND
   const result = await run(file, args, 15 * 60 * 1000)
+  // A failed check is often only a missing internet connection. A failed
+  // install is a real problem.
+  if (!result.ok) Sentry.captureMessage('X-App update failed', 'error')
   return { ok: result.ok }
 }
 

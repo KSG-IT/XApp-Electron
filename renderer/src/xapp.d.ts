@@ -63,6 +63,8 @@ declare global {
       terminateSession(): Promise<ApiResponse<unknown>>
       setMenuItemEnabled(id: MenuItemId, enabled: boolean): void
       onMenuCommand(callback: (command: MenuItemId) => void): () => void
+      // True in a packaged build (sentry.js).
+      sentryEnabled: boolean
       updateConfig: UpdateConfig
       checkForUpdate(): Promise<UpdateCheck>
       installUpdate(): Promise<{ ok: boolean }>
