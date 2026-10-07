@@ -118,20 +118,20 @@ Everything is owned by root, and the till user can only read and run it. Nothing
 
 #### Set up
 
-Over SSH, as a user with sudo, when Soci is closed. Replace `v2026.10.2` with the latest release and `ksg` with the till user:
+Over SSH, as a user with sudo, when Soci is closed. Replace `ksg` with the till user (`id ksg` shows the exact name):
 
 ```bash
-mkdir -p /tmp/xapp-src && cd /tmp/xapp-src
-curl -fsSL https://github.com/KSG-IT/XApp-Electron/archive/refs/tags/v2026.10.2.tar.gz | tar -xz --strip-components=1
-sudo deploy/install.sh ksg
+curl -fsSL https://raw.githubusercontent.com/KSG-IT/XApp-Electron/master/deploy/install.sh | sudo bash -s -- ksg
 ```
 
-`install.sh` installs the files in the table, enables the units, and installs the latest release. Then:
+`install.sh` downloads the source of the latest release, installs the files in the table, enables the units, and installs the release. No copy of the repo is necessary. To read the script before it runs as root, download it first with `curl -o install.sh`, then run `sudo bash install.sh ksg`. From a copy of the repo, `sudo deploy/install.sh ksg` installs that copy.
+
+Then:
 
 1. Remove the old shortcut or autostart entry, so nobody starts a second copy.
 2. Close the old app and start the new one: `sudo systemctl --user --machine=ksg@ restart xapp.service`. This needs `ksg` logged in to the desktop. Otherwise the app starts at the next login.
 
-Run `install.sh` again from a newer release when `deploy/` changes. It keeps `/etc/xapp/update.env`.
+Run the same line again when `deploy/` changes in a release. It keeps `/etc/xapp/update.env`.
 
 #### Over SSH
 
