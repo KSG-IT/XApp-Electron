@@ -92,55 +92,10 @@ Mark a release as a pre-release to keep it from the till. `xapp-update.sh` insta
 
 ### Install and update on the till
 
-The app updates itself, but only while Soci is closed:
-
-- at startup, before the login screen,
-- each time Soci closes (`Steng soci`, or an expired token),
-- every 5 minutes in the background while the login screen shows.
-
-The app shows "Ser etter oppdateringer …" and then "Oppdaterer til <tag> …" instead of the login screen, so nobody can open Soci during an update. Then it restarts on the new release. Without internet, the app goes on to the login screen. The code is in `updater.js` and `renderer/src/screens/UpdateScreen.tsx`. It is on only when the app runs from `/opt/xapp/releases/<tag>/`, never from a clone.
-
-`deploy/xapp-update.sh` does the work. `check` needs no root. `update` runs as root through one sudoers rule, because the Chromium sandbox helper must be owned by root. A systemd timer also runs `update` once a day, as a fallback for an app that cannot start.
-
-| Path | What |
-|------|------|
-| `/opt/xapp/releases/<tag>/` | One unpacked release. The newest 3 are kept. |
-| `/opt/xapp/current` | Symlink to the active release. |
-| `/opt/xapp/skip-tag` | A release that the update must not install. `rollback` writes it. |
-| `/opt/xapp/bin/xapp-update.sh` | The update script. |
-| `/etc/xapp/update.env` | Config for `xapp-update.sh` (`deploy/update.env.example`). |
-| `/etc/xapp/xapp.env` | Optional environment for the app, for example `XAPP_API_URL`. |
-| `/etc/sudoers.d/xapp` | The till user may run `xapp-update.sh update` as root, and nothing else (`deploy/sudoers.example`). |
-| `/etc/systemd/user/xapp.service` | Starts the app when the till user logs in, and again after it exits. |
-| `/etc/systemd/system/xapp-update.timer` | The daily fallback. |
-
-Everything is owned by root, and the till user can only read and run it. Nothing is in a home folder, because Ubuntu home folders are closed to other users.
-
-#### Set up
-
-Over SSH, as a user with sudo, when Soci is closed. Replace `ksg` with the till user (`id ksg` shows the exact name):
+The till updates itself while Soci is closed, from GitHub Releases. Set it up over SSH with one line:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/KSG-IT/XApp-Electron/master/deploy/install.sh | sudo bash -s -- ksg
 ```
 
-`install.sh` downloads the source of the latest release, installs the files in the table, enables the units, and installs the release. No copy of the repo is necessary. To read the script before it runs as root, download it first with `curl -o install.sh`, then run `sudo bash install.sh ksg`. From a copy of the repo, `sudo deploy/install.sh ksg` installs that copy.
-
-Then:
-
-1. Remove the old shortcut or autostart entry, so nobody starts a second copy.
-2. Close the old app and start the new one: `sudo systemctl --user --machine=ksg@ restart xapp.service`. This needs `ksg` logged in to the desktop. Otherwise the app starts at the next login.
-
-Run the same line again when `deploy/` changes in a release. It keeps `/etc/xapp/update.env`.
-
-#### Over SSH
-
-```bash
-sudo /opt/xapp/bin/xapp-update.sh status       # active and installed releases
-sudo /opt/xapp/bin/xapp-update.sh rollback     # back to the previous release, skip the current one, restart
-sudo /opt/xapp/bin/xapp-update.sh update       # install now; the app starts it when Soci is closed
-journalctl -u xapp-update.service              # log of the daily timer
-sudo journalctl _SYSTEMD_USER_UNIT=xapp.service -n 100   # log of the app and its updates
-```
-
-After a `rollback`, the update skips the bad release until a newer one is published.
+[deploy/README.md](deploy/README.md) has how the update works, what goes where on the till, the commands to use over SSH, and how to remove it.
