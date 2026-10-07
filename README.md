@@ -68,10 +68,13 @@ Do not start the app with `--no-sandbox`.
 
 ### Release
 
-1. Set `version` in `package.json`, for example `1.2.0`, and merge to `master`.
-2. Tag the merge commit: `git tag v1.2.0 && git push origin v1.2.0`.
+A release is a tag on `master`, the same as in ksg-nett and ksg-nett-frontend. Nothing is edited or committed to make one.
 
-CI runs the tests and builds the Linux package. Then it publishes a GitHub Release with `xapp-linux-x64-v1.2.0.tar.gz` and its `.sha256`. CI fails if the tag does not match `package.json`.
+1. `git checkout master && git pull`
+2. `yarn release:preview` prints the next tag. It changes nothing.
+3. `yarn release` lists the merged PRs since the last tag. Type the tag name to confirm. It creates the tag and pushes it.
+
+Tags are versions in the form `v<year>.<month>.<number>`, for example `v2026.10.4`. CI refuses a tag that is not on `master`. It runs the tests, sets the app version from the tag and builds the Linux package. Then it publishes a GitHub Release with `xapp-linux-x64-v2026.10.4.tar.gz` and its `.sha256`.
 
 Mark a release as a pre-release to keep it from the till. `xapp-update.sh` installs only the latest full release.
 
