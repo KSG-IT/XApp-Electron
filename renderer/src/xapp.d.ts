@@ -37,6 +37,20 @@ export interface ChargePayload {
 
 export type MenuItemId = 'kryss' | 'cancel'
 
+export interface UpdateConfig {
+  // False when the app runs from a clone (yarn start).
+  enabled: boolean
+  // How often the login screen checks in the background.
+  intervalMs: number
+}
+
+// 'installed': a newer release is already in place and only needs a restart.
+export type UpdateCheck =
+  | { status: 'none' }
+  | { status: 'error' }
+  | { status: 'available'; tag: string }
+  | { status: 'installed'; tag: string }
+
 declare global {
   interface Window {
     xapp: {
@@ -49,6 +63,11 @@ declare global {
       terminateSession(): Promise<ApiResponse<unknown>>
       setMenuItemEnabled(id: MenuItemId, enabled: boolean): void
       onMenuCommand(callback: (command: MenuItemId) => void): () => void
+      updateConfig: UpdateConfig
+      checkForUpdate(): Promise<UpdateCheck>
+      installUpdate(): Promise<{ ok: boolean }>
+      // False if Soci is open. Otherwise the app exits and starts the new release.
+      restartForUpdate(): Promise<boolean>
     }
   }
 }

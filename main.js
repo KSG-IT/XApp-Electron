@@ -1,6 +1,7 @@
 const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron')
 const path = require('path')
 const api = require('./apiClient')
+const updater = require('./updater')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -67,6 +68,17 @@ function registerIpcHandlers() {
   )
   ipcMain.handle('api:charge', (_event, payload) => api.charge(payload))
   ipcMain.handle('api:terminate', () => api.terminateSession())
+
+  // Read once by preload.js, before the window renders its first screen.
+  ipcMain.on('update:config', event => {
+    event.returnValue = {
+      enabled: updater.enabled,
+      intervalMs: updater.intervalMs,
+    }
+  })
+  ipcMain.handle('update:check', () => updater.check())
+  ipcMain.handle('update:install', () => updater.install())
+  ipcMain.handle('update:restart', () => updater.restart())
 
   ipcMain.on('menu:set-enabled', (_event, { id, enabled }) => {
     if (id !== 'kryss' && id !== 'cancel') return

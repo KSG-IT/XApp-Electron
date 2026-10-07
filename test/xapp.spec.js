@@ -1,5 +1,7 @@
 // End-to-end tests for the till flow: open Soci, identify a buyer, fill the
 // basket, charge or cancel, close Soci. The app runs against test/fakeApi.js.
+const fs = require('fs')
+const os = require('os')
 const path = require('path')
 const { test, expect, _electron: electron } = require('@playwright/test')
 const { startFakeApi, TOKEN, OPENER_CARD } = require('./fakeApi')
@@ -9,10 +11,10 @@ let app
 let page
 let pageProblems
 
-async function launch(apiUrl) {
+async function launch(apiUrl, env = {}) {
   app = await electron.launch({
     args: [path.join(__dirname, '..')],
-    env: { ...process.env, XAPP_API_URL: apiUrl },
+    env: { ...process.env, XAPP_API_URL: apiUrl, ...env },
   })
   page = await app.firstWindow()
   pageProblems = []
@@ -320,5 +322,127 @@ test.describe('expired token', () => {
     api.expireToken()
     await page.getByTestId('logout-button').click()
     await expect(page.getByTestId('login-output')).toHaveText(EXPIRED)
+  })
+})
+
+// test/fakeUpdater.sh stands in for deploy/xapp-update.sh.
+function fakeUpdater(state) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'xapp-updater-'))
+  const setState = value => fs.writeFileSync(path.join(dir, 'state'), value)
+  setState(state)
+  return {
+    env: {
+      XAPP_UPDATER: path.join(__dirname, 'fakeUpdater.sh'),
+      FAKE_UPDATER_DIR: dir,
+    },
+    setState,
+    calls: () => {
+      const log = path.join(dir, 'log')
+      if (!fs.existsSync(log)) return []
+      return fs.readFileSync(log, 'utf8').split('\n').filter(Boolean)
+    },
+  }
+}
+
+const LOGIN_TEXT = 'Vennligst skann kortet ditt'
+
+// The app exits to start the new release. Wait for that, and do not close it again.
+async function expectRestart() {
+  await app.waitForEvent('close')
+  app = null
+}
+
+test.describe('updates', () => {
+  test('a till without updates shows the login screen at once', async () => {
+    await launch(api.url)
+    await expect(page.getByText(LOGIN_TEXT)).toBeVisible()
+    await expect(page.getByTestId('update-status')).toHaveCount(0)
+  })
+
+  test('no update: the check blocks the login, then the login screen shows', async () => {
+    const updater = fakeUpdater('none')
+    await launch(api.url, updater.env)
+
+    await expect(page.getByTestId('update-status')).toHaveText(
+      'Ser etter oppdateringer …'
+    )
+    await scanCard(OPENER_CARD)
+    await expect(page.getByText(LOGIN_TEXT)).toBeVisible()
+    expect(updater.calls()).toEqual(['check'])
+    expect(api.find('POST', '/api/authentication/obtain-token')).toHaveLength(0)
+  })
+
+  test('a new release is installed, then the app restarts', async () => {
+    const updater = fakeUpdater('available')
+    await launch(api.url, updater.env)
+
+    await expect(page.getByTestId('update-status')).toHaveText(
+      'Oppdaterer til v2099.1.1 …'
+    )
+    await expectRestart()
+    expect(updater.calls()).toEqual(['check', 'update'])
+  })
+
+  test('a failed install shows a message, then the login screen', async () => {
+    const updater = fakeUpdater('install-fails')
+    await launch(api.url, updater.env)
+
+    await expect(page.getByTestId('update-status')).toHaveText(
+      'Oppdateringen feilet. Soci kan åpnes som vanlig.'
+    )
+    await expect(page.getByText(LOGIN_TEXT)).toBeVisible({ timeout: 10000 })
+    await openSoci()
+  })
+
+  test('a failed check (no internet) goes on to the login screen', async () => {
+    const updater = fakeUpdater('check-fails')
+    await launch(api.url, updater.env)
+
+    await expect(page.getByText(LOGIN_TEXT)).toBeVisible()
+    await openSoci()
+  })
+
+  test('Steng soci checks again before the login screen', async () => {
+    const updater = fakeUpdater('none')
+    await launch(api.url, updater.env)
+    await expect(page.getByText(LOGIN_TEXT)).toBeVisible()
+    await openSoci()
+
+    updater.setState('available')
+    await page.getByTestId('logout-button').click()
+    await expect(page.getByTestId('update-status')).toHaveText(
+      'Oppdaterer til v2099.1.1 …'
+    )
+    await expectRestart()
+    expect(updater.calls()).toEqual(['check', 'check', 'update'])
+  })
+
+  test('the login screen checks in the background', async () => {
+    const updater = fakeUpdater('none')
+    await launch(api.url, {
+      ...updater.env,
+      XAPP_UPDATE_INTERVAL_MS: '500',
+    })
+    await expect(page.getByText(LOGIN_TEXT)).toBeVisible()
+
+    updater.setState('available')
+    await expectRestart()
+    expect(updater.calls()).toContain('update')
+  })
+
+  test('no background check while Soci is open', async () => {
+    const updater = fakeUpdater('none')
+    await launch(api.url, {
+      ...updater.env,
+      XAPP_UPDATE_INTERVAL_MS: '500',
+    })
+    await expect(page.getByText(LOGIN_TEXT)).toBeVisible()
+    await openSoci()
+    const checks = updater.calls().length
+
+    updater.setState('available')
+    await page.waitForTimeout(2000)
+    expect(updater.calls()).toHaveLength(checks)
+    await scanBuyer('1111', 'Ola Nordmann')
   })
 })

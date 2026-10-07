@@ -1,4 +1,6 @@
-# A user unit: install it in ~/.config/systemd/user/ of the desktop user.
+# A user unit in /etc/systemd/user/, enabled only for the till user (install.sh).
+# It starts with the desktop session. The app exits to start a new release,
+# and systemd starts it again.
 [Unit]
 Description=X-App, the Soci till
 PartOf=graphical-session.target
@@ -8,7 +10,7 @@ After=graphical-session.target
 EnvironmentFile=-/etc/xapp/xapp.env
 ExecStart=/opt/xapp/current/X-App
 Restart=always
-RestartSec=5
+RestartSec=1
 
 [Install]
 WantedBy=graphical-session.target

@@ -9,6 +9,13 @@ contextBridge.exposeInMainWorld('xapp', {
   charge: payload => ipcRenderer.invoke('api:charge', payload),
   terminateSession: () => ipcRenderer.invoke('api:terminate'),
 
+  // Updates before Soci opens (updater.js). updateConfig is known before the
+  // first render, so a till without updates shows the login screen at once.
+  updateConfig: ipcRenderer.sendSync('update:config'),
+  checkForUpdate: () => ipcRenderer.invoke('update:check'),
+  installUpdate: () => ipcRenderer.invoke('update:install'),
+  restartForUpdate: () => ipcRenderer.invoke('update:restart'),
+
   // The "Kryss" menu: Escape cancels and x confirms (main.js).
   setMenuItemEnabled: (id, enabled) =>
     ipcRenderer.send('menu:set-enabled', { id, enabled }),

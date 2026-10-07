@@ -1,0 +1,3 @@
+# /etc/sudoers.d/xapp (install.sh writes it). The till user may install X-App
+# releases as root, and nothing else. XAPP_USER is replaced with the user name.
+XAPP_USER ALL=(root) NOPASSWD: /opt/xapp/bin/xapp-update.sh update

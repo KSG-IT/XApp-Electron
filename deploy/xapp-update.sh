@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 # Installs X-App releases from GitHub on the till. See README.md → "Install and update on the till".
 #
-#   xapp-update.sh update     install the latest release if it is new (the timer runs this)
-#   xapp-update.sh rollback   go back to the previous release and skip the current one
+#   xapp-update.sh check      print "available <tag>" or "none". Needs no root.
+#   xapp-update.sh update     install the latest release if it is new. Does not restart the app.
+#   xapp-update.sh rollback   go back to the previous release, skip the current one, restart the app
 #   xapp-update.sh status     show the installed releases
+#
+# The app runs `check` and `update` itself while Soci is closed, and then restarts
+# (updater.js). `update` runs through sudo (deploy/sudoers.example). The timer
+# runs `update` once a day as a fallback.
 #
 # Layout under XAPP_ROOT (default /opt/xapp):
 #   releases/<tag>/   one unpacked release each
@@ -21,7 +26,7 @@ fi
 XAPP_REPO="${XAPP_REPO:-KSG-IT/XApp-Electron}"
 XAPP_ROOT="${XAPP_ROOT:-/opt/xapp}"
 XAPP_API_BASE="${XAPP_API_BASE:-https://api.github.com}"
-# The desktop user that runs xapp.service. Empty: do not restart the app.
+# The desktop user that runs xapp.service. `rollback` restarts the app for this user.
 XAPP_USER="${XAPP_USER:-}"
 XAPP_KEEP="${XAPP_KEEP:-3}"
 
@@ -46,7 +51,7 @@ current_tag() {
 # Prints "<tag> <tarball url> <checksum url>" for the latest release.
 # GitHub leaves drafts and pre-releases out of /releases/latest.
 latest_release() {
-  curl -fsSL -H "Accept: application/vnd.github+json" \
+  curl -fsSL --max-time 15 -H "Accept: application/vnd.github+json" \
     "$XAPP_API_BASE/repos/$XAPP_REPO/releases/latest" |
     python3 -c '
 import json, sys
@@ -96,8 +101,8 @@ install_release() {
   local asset="$ASSET_PREFIX-$tag.tar.gz"
 
   log "downloading $tag"
-  curl -fsSL -o "$tmp/$asset" "$tarball_url"
-  curl -fsSL -o "$tmp/$asset.sha256" "$checksum_url"
+  curl -fsSL --connect-timeout 15 --max-time 900 -o "$tmp/$asset" "$tarball_url"
+  curl -fsSL --connect-timeout 15 --max-time 60 -o "$tmp/$asset.sha256" "$checksum_url"
   (cd "$tmp" && sha256sum --check --quiet "$asset.sha256") || die "checksum of $asset does not match"
 
   mkdir -p "$tmp/unpacked"
@@ -112,6 +117,17 @@ install_release() {
 
   rm -rf "${RELEASES:?}/$tag"
   mv "$app_dir" "$RELEASES/$tag"
+}
+
+# True if `update` would install <tag>.
+is_new() {
+  [[ "$1" != "$(current_tag)" ]] && ! [[ -f "$SKIP_TAG_FILE" && "$(cat "$SKIP_TAG_FILE")" == "$1" ]]
+}
+
+cmd_check() {
+  local latest _
+  read -r latest _ < <(latest_release) || die "could not read the latest release of $XAPP_REPO"
+  if is_new "$latest"; then echo "available $latest"; else echo "none"; fi
 }
 
 cmd_update() {
@@ -133,7 +149,6 @@ cmd_update() {
   activate "$latest"
   rm -f "$SKIP_TAG_FILE"
   prune
-  restart_app
 }
 
 cmd_rollback() {
@@ -154,15 +169,18 @@ cmd_status() {
   log "installed: $(ls -1 "$RELEASES" 2>/dev/null | sort -V | tr '\n' ' ')"
 }
 
-main() {
+require_root() {
   [[ "$(id -u)" -eq 0 ]] || die "run as root (the sandbox helper must be owned by root)"
   mkdir -p "$RELEASES"
+}
 
+main() {
   case "${1:-update}" in
-  update) cmd_update ;;
-  rollback) cmd_rollback ;;
+  check) cmd_check ;;
+  update) require_root && cmd_update ;;
+  rollback) require_root && cmd_rollback ;;
   status) cmd_status ;;
-  *) die "unknown command '$1'. Use update, rollback or status." ;;
+  *) die "unknown command '$1'. Use check, update, rollback or status." ;;
   esac
 }
 

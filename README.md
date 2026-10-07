@@ -92,45 +92,55 @@ Mark a release as a pre-release to keep it from the till. `xapp-update.sh` insta
 
 ### Install and update on the till
 
-The till installs releases with `deploy/xapp-update.sh`. A systemd timer runs it every day at 06:00, when Soci is closed.
+The app updates itself, but only while Soci is closed:
+
+- at startup, before the login screen,
+- each time Soci closes (`Steng soci`, or an expired token),
+- every 5 minutes in the background while the login screen shows.
+
+The app shows "Ser etter oppdateringer …" and then "Oppdaterer til <tag> …" instead of the login screen, so nobody can open Soci during an update. Then it restarts on the new release. Without internet, the app goes on to the login screen. The code is in `updater.js` and `renderer/src/screens/UpdateScreen.tsx`. It is on only when the app runs from `/opt/xapp/releases/<tag>/`, never from a clone.
+
+`deploy/xapp-update.sh` does the work. `check` needs no root. `update` runs as root through one sudoers rule, because the Chromium sandbox helper must be owned by root. A systemd timer also runs `update` once a day, as a fallback for an app that cannot start.
 
 | Path | What |
 |------|------|
 | `/opt/xapp/releases/<tag>/` | One unpacked release. The newest 3 are kept. |
 | `/opt/xapp/current` | Symlink to the active release. |
 | `/opt/xapp/skip-tag` | A release that the update must not install. `rollback` writes it. |
+| `/opt/xapp/bin/xapp-update.sh` | The update script. |
 | `/etc/xapp/update.env` | Config for `xapp-update.sh` (`deploy/update.env.example`). |
 | `/etc/xapp/xapp.env` | Optional environment for the app, for example `XAPP_API_URL`. |
+| `/etc/sudoers.d/xapp` | The till user may run `xapp-update.sh update` as root, and nothing else (`deploy/sudoers.example`). |
+| `/etc/systemd/user/xapp.service` | Starts the app when the till user logs in, and again after it exits. |
+| `/etc/systemd/system/xapp-update.timer` | The daily fallback. |
 
-Set it up once, from a clone of this repo on the till:
+Everything is owned by root, and the till user can only read and run it. Nothing is in a home folder, because Ubuntu home folders are closed to other users.
+
+#### Set up
+
+Over SSH, as a user with sudo, when Soci is closed. Replace `v2026.10.2` with the latest release and `ksg` with the till user:
 
 ```bash
-sudo install -D -m 755 deploy/xapp-update.sh /opt/xapp/bin/xapp-update.sh
-sudo install -D -m 644 deploy/update.env.example /etc/xapp/update.env
-sudoedit /etc/xapp/update.env    # set XAPP_USER to the desktop user
-sudo install -m 644 deploy/systemd/xapp-update.service deploy/systemd/xapp-update.timer /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now xapp-update.timer
-sudo /opt/xapp/bin/xapp-update.sh update    # first install
+mkdir -p /tmp/xapp-src && cd /tmp/xapp-src
+curl -fsSL https://github.com/KSG-IT/XApp-Electron/archive/refs/tags/v2026.10.2.tar.gz | tar -xz --strip-components=1
+sudo deploy/install.sh ksg
 ```
 
-Then, as the desktop user, start the app as a user service. It restarts if it crashes:
+`install.sh` installs the files in the table, enables the units, and installs the latest release. Then:
+
+1. Remove the old shortcut or autostart entry, so nobody starts a second copy.
+2. Close the old app and start the new one: `sudo systemctl --user --machine=ksg@ restart xapp.service`. This needs `ksg` logged in to the desktop. Otherwise the app starts at the next login.
+
+Run `install.sh` again from a newer release when `deploy/` changes. It keeps `/etc/xapp/update.env`.
+
+#### Over SSH
 
 ```bash
-install -D -m 644 deploy/systemd/xapp.service ~/.config/systemd/user/xapp.service
-systemctl --user daemon-reload
-systemctl --user enable --now xapp.service
-```
-
-Day to day, over SSH:
-
-```bash
-sudo /opt/xapp/bin/xapp-update.sh status      # active and installed releases
-sudo /opt/xapp/bin/xapp-update.sh update      # install the latest release now
-sudo /opt/xapp/bin/xapp-update.sh rollback    # back to the previous release; skip the current one
-journalctl -u xapp-update.service             # update log
+sudo /opt/xapp/bin/xapp-update.sh status       # active and installed releases
+sudo /opt/xapp/bin/xapp-update.sh rollback     # back to the previous release, skip the current one, restart
+sudo /opt/xapp/bin/xapp-update.sh update       # install now; the app starts it when Soci is closed
+journalctl -u xapp-update.service              # log of the daily timer
+sudo journalctl _SYSTEMD_USER_UNIT=xapp.service -n 100   # log of the app and its updates
 ```
 
 After a `rollback`, the update skips the bad release until a newer one is published.
-
-`xapp-update.sh` does not update itself. Install it again from the repo when it changes.

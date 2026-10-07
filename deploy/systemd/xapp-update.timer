@@ -1,6 +1,8 @@
 [Unit]
-Description=Check for a new X-App release every morning, when Soci is closed
+Description=Install a new X-App release once a day, as a fallback
 
+# The app updates itself before Soci opens (updater.js). This timer covers a
+# till where the app cannot start. The new release runs at the next start.
 [Timer]
 OnCalendar=*-*-* 06:00:00
 
