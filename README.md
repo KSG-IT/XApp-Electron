@@ -61,6 +61,8 @@ The window uses the same stack as ksg-nett-frontend: React 19, Mantine 9, Vite 8
 
 The window runs with `sandbox`, `contextIsolation` and no `nodeIntegration`, and cannot navigate.
 
+Errors and crashes from the main process and the window go to the Sentry project `ksg-it/xapp-electron` (`sentry.js`). Only a packaged build reports, with the release `xapp-electron@<version>`. A release is in the environment `production`, a dev build in `development`. `yarn start` and the tests do not report.
+
 ### Ubuntu sandbox
 
 Ubuntu 23.10 and later block the unprivileged user namespaces that Chromium's sandbox needs. If `yarn start` fails with a sandbox error, do one of these:

@@ -1,3 +1,4 @@
+const sentry = require('./sentry')
 const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron')
 const path = require('path')
 const api = require('./apiClient')
@@ -68,6 +69,11 @@ function registerIpcHandlers() {
   )
   ipcMain.handle('api:charge', (_event, payload) => api.charge(payload))
   ipcMain.handle('api:terminate', () => api.terminateSession())
+
+  // Read once by preload.js: the window starts Sentry only if main did.
+  ipcMain.on('sentry:enabled', event => {
+    event.returnValue = sentry.enabled
+  })
 
   // Read once by preload.js, before the window renders its first screen.
   ipcMain.on('update:config', event => {

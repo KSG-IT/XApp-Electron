@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld('xapp', {
   charge: payload => ipcRenderer.invoke('api:charge', payload),
   terminateSession: () => ipcRenderer.invoke('api:terminate'),
 
+  sentryEnabled: ipcRenderer.sendSync('sentry:enabled'),
+
   // Updates before Soci opens (updater.js). updateConfig is known before the
   // first render, so a till without updates shows the login screen at once.
   updateConfig: ipcRenderer.sendSync('update:config'),
