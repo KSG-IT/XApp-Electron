@@ -1,0 +1,48 @@
+name: Release
+
+# A version tag, for example v2026.10.3, publishes a GitHub Release with the
+# Linux package. The till installs the latest release every morning
+# (deploy/xapp-update.sh). Make the tag with `yarn release` (scripts/release.sh).
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  check-tag:
+    name: Check that the tag is on master
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: git merge-base --is-ancestor "$GITHUB_SHA" origin/master
+
+  test:
+    needs: [check-tag]
+    uses: ./.github/workflows/tests.yml
+
+  package:
+    needs: [test]
+    uses: ./.github/workflows/package.yml
+    with:
+      version: ${{ github.ref_name }}
+      retention-days: 7
+
+  publish:
+    name: Publish GitHub Release
+    needs: [package]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      ASSET: ${{ needs.package.outputs.asset }}
+    steps:
+      - name: Download the tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.package.outputs.asset }}
+
+      - name: Create the release with the tarball and its checksum
+        run: gh release create "$GITHUB_REF_NAME" "$ASSET" "$ASSET.sha256" --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --title "$GITHUB_REF_NAME"
+        env:
+          GH_TOKEN: ${{ github.token }}
