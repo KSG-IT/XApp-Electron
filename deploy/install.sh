@@ -83,6 +83,23 @@ install_from() {
   runuser -u "$till_user" -- ln -sfn /etc/systemd/user/xapp.service "$wants/xapp.service"
   systemctl --user --machine="$till_user@" daemon-reload 2>/dev/null || true
 
+  step "launcher: app menu and the Desktop of $till_user"
+  install -D -o root -g root -m 644 "$src/../assets/icons/png/256x256.png" /opt/xapp/xapp.png
+  install -D -o root -g root -m 644 "$src/xapp.desktop" /usr/share/applications/xapp.desktop
+  # A copy on the Desktop, owned by the till user, as GNOME requires.
+  local desktop
+  desktop="$(runuser -u "$till_user" -- xdg-user-dir DESKTOP 2>/dev/null || true)"
+  if [[ -n "$desktop" && -d "$desktop" ]]; then
+    runuser -u "$till_user" -- install -m 755 "$src/xapp.desktop" "$desktop/Krysseprogram.desktop"
+    # GNOME starts a Desktop launcher only when it is marked as trusted. That
+    # needs the session bus of the user, so it works only while the user is logged in.
+    runuser -u "$till_user" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u "$till_user")/bus" \
+      gio set "$desktop/Krysseprogram.desktop" metadata::trusted true 2>/dev/null ||
+      echo "not marked as trusted: right-click the icon and choose Allow Launching"
+  else
+    echo "no Desktop folder for $till_user: only the app menu entry"
+  fi
+
   step "latest release"
   /opt/xapp/bin/xapp-update.sh update
   /opt/xapp/bin/xapp-update.sh status

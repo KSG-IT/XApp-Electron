@@ -8,6 +8,7 @@ The files in this folder install the X-App on the till in Soci and keep it up to
 | `xapp-update.sh` | `check`, `update`, `rollback` and `status` for the releases in `/opt/xapp`. |
 | `sudoers.example` | The sudoers rule. `install.sh` writes it with the user name. |
 | `update.env.example` | The config for `xapp-update.sh`. |
+| `xapp.desktop` | The launcher "Krysseprogram", for the app menu and the Desktop of the till user. |
 | `systemd/xapp.service` | The user unit that runs the app. |
 | `systemd/xapp-update.service`, `.timer` | The daily fallback update at 06:00. |
 | `test-update.sh` | The CI test for `xapp-update.sh`, against a fake GitHub API. |
@@ -56,9 +57,18 @@ Run the same line again when `deploy/` changes in a release. It keeps `/etc/xapp
 | `/etc/sudoers.d/xapp` | The till user may run `/opt/xapp/bin/xapp-update.sh update` as root, and nothing else. | root |
 | `/etc/systemd/system/xapp-update.service`, `.timer` | The daily fallback update. | root |
 | `/etc/systemd/user/xapp.service` | Starts the app when the till user logs in, and again after it exits. | root |
-| `~ksg/.config/systemd/user/graphical-session.target.wants/xapp.service` | The only file in a home folder: a symlink that enables `xapp.service` for the till user only. | ksg |
+| `/opt/xapp/xapp.png` | The launcher icon (`assets/icons/png/256x256.png`). | root |
+| `/usr/share/applications/xapp.desktop` | The launcher in the app menu. | root |
+| `~ksg/Desktop/Krysseprogram.desktop` | The launcher on the Desktop. GNOME needs it owned by the user and marked as trusted. | ksg |
+| `~ksg/.config/systemd/user/graphical-session.target.wants/xapp.service` | A symlink that enables `xapp.service` for the till user only. | ksg |
 
-The till user can read and run the files owned by root, but cannot change them. The app is not in a home folder, because Ubuntu home folders are closed to other users.
+The till user can read and run the files owned by root, but cannot change them. The app is not in a home folder, because Ubuntu home folders are closed to other users. Only the two last files in the table are in the home folder of the till user.
+
+## The launcher and a frozen app
+
+The app starts again about 1 second after it exits: after the close button, a crash, or "Force Quit" when GNOME says it does not respond. So the staff need no launcher for a frozen app. The launcher runs `systemctl --user reset-failed` and `start`. When systemd gives up after 5 starts in 10 seconds, a click on the launcher starts the app again. When the app runs, a click does nothing.
+
+If the Desktop launcher opens a text editor or does nothing at all, right-click it and choose **Allow Launching**. `install.sh` marks it as trusted only when the till user is logged in.
 
 `install.sh` does not touch an old copy of the app (for example a clone in a home folder), or the shortcut that starts it. Remove them yourself when the new setup works.
 
@@ -83,7 +93,8 @@ sudo systemctl disable --now xapp-update.timer
 sudo systemctl --user --machine=ksg@ stop xapp.service
 sudo rm -rf /opt/xapp /etc/xapp /etc/sudoers.d/xapp \
   /etc/systemd/system/xapp-update.service /etc/systemd/system/xapp-update.timer \
-  /etc/systemd/user/xapp.service \
+  /etc/systemd/user/xapp.service /usr/share/applications/xapp.desktop \
+  ~ksg/Desktop/Krysseprogram.desktop \
   ~ksg/.config/systemd/user/graphical-session.target.wants/xapp.service
 sudo systemctl daemon-reload
 ```
