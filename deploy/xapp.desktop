@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Krysseprogram
+Comment=X-App, the Soci till
+# xapp.service starts the app and starts it again after it exits. reset-failed
+# clears systemd's start limit (5 starts in 10 s), so a click always works.
+# When the app runs, a click does nothing: systemd starts no second copy.
+Exec=sh -c 'systemctl --user reset-failed xapp.service; systemctl --user start xapp.service'
+Icon=/opt/xapp/xapp.png
+Terminal=false
+StartupNotify=false
+Categories=Office;
