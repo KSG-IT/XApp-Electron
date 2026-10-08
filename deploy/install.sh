@@ -90,7 +90,8 @@ install_from() {
   local desktop
   desktop="$(runuser -u "$till_user" -- xdg-user-dir DESKTOP 2>/dev/null || true)"
   if [[ -n "$desktop" && -d "$desktop" ]]; then
-    runuser -u "$till_user" -- install -m 755 "$src/xapp.desktop" "$desktop/Krysseprogram.desktop"
+    # Root copies it: the till user cannot read the download folder (mktemp, 700).
+    install -o "$till_user" -g "$(id -gn "$till_user")" -m 755 "$src/xapp.desktop" "$desktop/Krysseprogram.desktop"
     # GNOME starts a Desktop launcher only when it is marked as trusted. That
     # needs the session bus of the user, so it works only while the user is logged in.
     runuser -u "$till_user" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u "$till_user")/bus" \

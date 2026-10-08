@@ -12,6 +12,7 @@ The files in this folder install the X-App on the till in Soci and keep it up to
 | `systemd/xapp.service` | The user unit that runs the app. |
 | `systemd/xapp-update.service`, `.timer` | The daily fallback update at 06:00. |
 | `test-update.sh` | The CI test for `xapp-update.sh`, against a fake GitHub API. |
+| `test-install.sh` | The CI test for `install.sh`, for a test user on the runner. It runs only in CI, because it changes the system. |
 
 ## How the till updates
 

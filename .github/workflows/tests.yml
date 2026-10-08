@@ -45,3 +45,18 @@ jobs:
       # like on the till, to set the owner of chrome-sandbox.
       - name: Test deploy/xapp-update.sh
         run: sudo deploy/test-update.sh
+
+  install-script:
+    name: Install script test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      # install.sh finds the Desktop folder with xdg-user-dir.
+      - name: Install xdg-user-dirs
+        run: sudo apt-get install -y --no-install-recommends xdg-user-dirs
+
+      # Runs install.sh as root for a test user, from a folder only root can
+      # open, like the piped install on the till. It changes the runner.
+      - name: Test deploy/install.sh
+        run: sudo CI=true deploy/test-install.sh
