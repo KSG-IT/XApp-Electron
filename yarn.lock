@@ -198,29 +198,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/core@npm:^9.6.3":
-  version: 9.6.3
-  resolution: "@mantine/core@npm:9.6.3"
+"@mantine/core@npm:^9.7.0":
+  version: 9.7.1
+  resolution: "@mantine/core@npm:9.7.1"
   dependencies:
     "@floating-ui/react": "npm:^0.27.20"
     clsx: "npm:^2.1.1"
     react-number-format: "npm:^5.4.5"
     react-remove-scroll: "npm:^2.7.2"
-    type-fest: "npm:^5.8.0"
+    type-fest: "npm:^5.10.0"
   peerDependencies:
-    "@mantine/hooks": 9.6.3
+    "@mantine/hooks": 9.7.1
     react: ^19.2.0
     react-dom: ^19.2.0
-  checksum: 10c0/c2c46c7067415edb8f6132350afb7a3c21a3be0fd2053ca4c533ae67eaf1fc3c1b421135bdefaba13ca6d67620a13cfa1f1114da9fb54529337d0b79449b46ed
+  checksum: 10c0/bdd21cffab0a6c1c24ae4f74b4c96d9fb9a4c8b7fe2dc878666997562a17af7a671e52f8b47b9de7ef828e4363b23d446bc01c8a46292a2c20dbdc191a180ea9
   languageName: node
   linkType: hard
 
-"@mantine/hooks@npm:^9.6.3":
-  version: 9.6.3
-  resolution: "@mantine/hooks@npm:9.6.3"
+"@mantine/hooks@npm:^9.7.0":
+  version: 9.7.1
+  resolution: "@mantine/hooks@npm:9.7.1"
   peerDependencies:
     react: ^19.2.0
-  checksum: 10c0/245a1d3fa93b57e9401408115c4b47ffaa4bc7144ccb942e505fc267309ea3e1c504799b54d0ef4d7455586339b3ef49048df3877e074d480dceeb9f5353cd5b
+  checksum: 10c0/25ebdbc7e1aa6f04baab346507fca70f052ef55dc278ea0c3ae0dbf883a32bed89dab67df2efb592b19e5908148f46c35b4e94cb950c8ae82a9c268bff887768
   languageName: node
   linkType: hard
 
@@ -1845,7 +1845,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^5.8.0":
+"type-fest@npm:^5.10.0":
   version: 5.10.0
   resolution: "type-fest@npm:5.10.0"
   dependencies:
@@ -2024,8 +2024,8 @@ __metadata:
   resolution: "xapp-electron@workspace:."
   dependencies:
     "@electron/packager": "npm:^20.3.0"
-    "@mantine/core": "npm:^9.6.3"
-    "@mantine/hooks": "npm:^9.6.3"
+    "@mantine/core": "npm:^9.7.0"
+    "@mantine/hooks": "npm:^9.7.0"
     "@playwright/test": "npm:^1.63.0"
     "@sentry/electron": "npm:^8.1.0"
     "@types/react": "npm:^19"
