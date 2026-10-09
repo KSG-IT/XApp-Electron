@@ -9,8 +9,8 @@
   "packageManager": "yarn@4.18.1",
   "devDependencies": {
     "@electron/packager": "^20.3.0",
-    "@mantine/core": "^9.6.3",
-    "@mantine/hooks": "^9.6.3",
+    "@mantine/core": "^9.7.0",
+    "@mantine/hooks": "^9.7.0",
     "@playwright/test": "^1.63.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
